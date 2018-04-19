@@ -2,7 +2,7 @@
 
 PROBLEM := SameColorPairs
 CXX := g++
-CXXFLAGS := -std=c++11 -Wall -O2 -DLOCAL
+CXXFLAGS := -std=c++11 -Wall -O2 -g -DLOCAL
 
 build: a.out tester.jar
 run: a.out tester.jar
