@@ -121,6 +121,8 @@ public class SameColorPairsVis {
             return "Both tiles you're trying to remove must still be on the board.";
         if (board[r1][c1] != board[r2][c2])
             return "Both tiles you're trying to remove must have the same color.";
+        if (r1 == r2 && c1 == c2)
+            return "The tiles you're trying to remove must be distinct.";
         char c = board[r1][c1];
         for (int i = Math.min(r1, r2); i <= Math.max(r1, r2); ++i)
         for (int j = Math.min(c1, c2); j <= Math.max(c1, c2); ++j)
@@ -163,17 +165,17 @@ public class SameColorPairsVis {
                 moves = removePairs(boardArg);
             } catch (Exception e) {
                 addFatalError("Failed to get result from removePairs.");
-                return 0.0;
+                return -1.0;
             }
 
             // check the return and score it
             if (moves == null) {
                 addFatalError("Your return contained invalid number of elements.");
-                return 0.0;
+                return -1.0;
             }
             if (moves.length > W*H/2) {
                 addFatalError("Your return contained more than " + (W*H/2) + " elements.");
-                return 0.0;
+                return -1.0;
             }
 
             // parse each move and simulate it
@@ -184,7 +186,7 @@ public class SameColorPairsVis {
                 int R1, C1, R2, C2;
                 if (s.length != 4) {
                     addFatalError("Move " + i + ": Each element of your return must be formatted as \"R1 C1 R2 C2\"");
-                    return 0.0;
+                    return -1.0;
                 }
                 // check the cell we want to start roll from
                 try {
@@ -195,22 +197,22 @@ public class SameColorPairsVis {
                 }
                 catch (Exception e) {
                     addFatalError("Move " + i + ": All numbers in each element of your return must be integers.");
-                    return 0;
+                    return -1.0;
                 }
                 if (!isInside(R1, C1)) {
                     addFatalError("Move " + i + ": R1 and C1 in each element of your return must specify a cell within the board.");
-                    return 0;
+                    return -1.0;
                 }
                 if (!isInside(R2, C2)) {
                     addFatalError("Move " + i + ": R2 and C2 in each element of your return must specify a cell within the board.");
-                    return 0;
+                    return -1.0;
                 }
 
                 // try to remove the tiles
                 String errmes = removePair(R1, C1, R2, C2);
                 if (!errmes.equals("")) {
                     addFatalError("Move " + i + ": " + errmes);
-                    return 0;
+                    return -1.0;
                 }
 
                 if (vis) {
@@ -236,7 +238,7 @@ public class SameColorPairsVis {
       catch (Exception e) { 
         addFatalError("An exception occurred while trying to get your program's results.");
         e.printStackTrace(); 
-        return 0;
+        return -1.0;
       }
     }
 // ------------- visualization part ------------
