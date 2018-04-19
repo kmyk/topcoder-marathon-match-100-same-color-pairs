@@ -63,3 +63,23 @@ gif出力機能はなぜ配られなかったのか。上位者の出力を眺�
 | eris_c       | 871525.42  | 8    | 04.19.2018 11:38:48     | C++        | 2                 | 2                 | 1514              | 1841.79           | 327.79       |
 | kimiyuki     | 870254.24  | 9    | 04.19.2018 05:04:49     | C++        | 9                 | 2                 | 1745              | 1830.07           | 85.07        |
 | MaxBuzz      | 865254.24  | 10   | 04.19.2018 11:25:18     | Java       | 3                 | 2                 | 1393              | 1523.64           | 130.64       |
+
+rejudgeがあった。[ceni1055](https://www.topcoder.com/members/ceni1055/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さん [Pag2](https://www.topcoder.com/members/Pag2/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんが同点1位だったがtesterのバグを突いてたようで共に0点に落ちていた。
+
+`33ec0a8eb9474d17d67cb7ec7851e337ded45d0f` を提出。5位。
+外側のものは残りやすいのでそれらを先に片付けて少数だけ残して決め打ちし、それら残りを集中的に乱択で処理する。
+
+[kurenai3110](https://www.topcoder.com/members/kurenai3110/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さん [yowa](https://www.topcoder.com/members/yowa/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんが上にいる。まだ初日深夜だが彼らいつもこの時間にこんな順位なんだっけかという気持ち。
+[shamai](https://www.topcoder.com/members/shamal/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さん [ebicochineal](https://www.topcoder.com/members/ebicochineal/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんがさらに上にいる。共にratingが未収束でなんとも言えないね。
+
+| Handle        | Score       | Rank   | Last Submission Time      | Language    | Example Tests     | Submissions | Current Rating    | Predicted Rating  | Rating Delta |
+|---------------|-------------|--------|---------------------------|-------------|-------------------|-------------|-------------------|-------------------|--------------|
+| shamal        | 953560.61   | 1      | 04.19.2018 13:44:19       | C++         | 6                 | 3           | 1627              | 1901.85           | 274.85       |
+| ebicochineal  | 942348.48   | 2      | 04.19.2018 13:10:29       | C++         | 1                 | 3           | 1623              | 1864.42           | 241.42       |
+| kurenai3110   | 932500.00   | 3      | 04.19.2018 10:23:35       | C++         | 2                 | 2           | 2137              | 2213.70           | 76.70        |
+| yowa          | 928560.61   | 4      | 04.19.2018 12:11:38       | C++         | 3                 | 3           | 2157              | 2205.63           | 48.63        |
+| kimiyuki      | 923484.85   | 5      | 04.19.2018 14:00:26       | C++         | 11                | 3           | 1745              | 1896.23           | 151.23       |
+| CatalinT      | 893636.36   | 6      | 04.19.2018 04:55:27       | C++         | 3                 | 2           | 2504              | 2480.71           | -23.29       |
+
+次やるべきことは焼き鈍しに思える。
+対の列と見ると焼けないが、対の集合から列の復元が実質的に一意であることを考えると焼ける。
