@@ -1,6 +1,7 @@
 .PHONY: build run
 
 PROBLEM := SameColorPairs
+CXX := g++
 CXXFLAGS := -std=c++11 -Wall -O2 -DLOCAL
 
 build: a.out tester.jar
@@ -8,7 +9,7 @@ run: a.out tester.jar
 	java -jar tester.jar -exec ./a.out
 
 a.out: main.cpp ${PROBLEM}.cpp
-	g++ ${CXXFLAGS} $<
+	${CXX} ${CXXFLAGS} $<
 
 tester.jar: ${PROBLEM}Vis.java
 	-mkdir build
