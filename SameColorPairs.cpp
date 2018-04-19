@@ -45,101 +45,139 @@ inline double rdtsc() { // in seconds
 constexpr int TLE = 10; // sec
 double clock_begin;
 
-
-class Solver {
-    const int H;
-    const int W;
-    const int C;
-    const vector<vector<int> > original_board;
-public:
-    Solver(int H, int W, int C, vector<vector<int> > const & board)
-            : H(H)
-            , W(W)
-            , C(C)
-            , original_board(board) {
-    }
-
-    vector<array<int, 4> > solve1() const {
-        vector<vector<int> > board = original_board;
-        random_device device;
-        xor_shift_128 gen(device());
-        vector<vector<pair<int, int> > > color(C);
-        REP (y, H) REP (x, W) {
-            color[board[y][x]].emplace_back(y, x);
+bool is_valid_pair(vector<vector<int> > const & board, pair<int, int> const & p1, pair<int, int> const & p2) {
+    int y1, x1; tie(y1, x1) = p1;
+    int y2, x2; tie(y2, x2) = p2;
+    int c = board[y1][x1];
+    if (y1 > y2) swap(y1, y2);
+    if (x1 > x2) swap(x1, x2);
+    REP3 (y, y1, y2 + 1) {
+        REP3 (x, x1, x2 + 1) {
+            if (board[y][x] != -1 and board[y][x] != c) {
+                return false;
+            }
         }
+    }
+    return true;
+}
+
+void use_pair(vector<vector<int> > & board, vector<pair<int, int> > & color, int i, int j, vector<array<int, 4> > & rects) {
+    int y1, x1; tie(y1, x1) = color[i];
+    int y2, x2; tie(y2, x2) = color[j];
+    rects.push_back((array<int, 4>) { y1, x1, y2, x2 });
+    board[y1][x1] = -1;
+    board[y2][x2] = -1;
+    swap(color[i], color.back()); color.pop_back();
+    swap(color[j], color.back()); color.pop_back();
+}
+
+vector<array<int, 4> > solve_prepare(int H, int W, int C, vector<vector<int> > & board, int limit) {
+    vector<vector<pair<int, int> > > color(C);
+    REP (y, H) REP (x, W) {
+        color[board[y][x]].emplace_back(y, x);
+    }
+    REP (c, C) {
+        auto sq = [](int x) { return x * x; };
+        sort(ALL(color[c]), [&](pair<int, int> const & p1, pair<int, int> const & p2) {
+            int y1, x1; tie(y1, x1) = p1;
+            int y2, x2; tie(y2, x2) = p2;
+            int a1 = sq(2 * y1 - H) + sq(2 * x1 - W);
+            int a2 = sq(2 * y2 - H) + sq(2 * x2 - W);
+            return a1 < a2;
+        });
+    }
+    vector<array<int, 4> > rects;
+    while ((int)rects.size() < limit) {
+        bool found = false;
         REP (c, C) {
-            shuffle(ALL(color[c]), gen);
-        }
-        vector<array<int, 4> > rects;
-        while (true) {
-            bool found = false;
-            REP (c, C) {
-                REP (ci, color[c].size()) {
-                    REP (cj, ci) {
-                        int y1, x1; tie(y1, x1) = color[c][ci];
-                        int y2, x2; tie(y2, x2) = color[c][cj];
-                        if (y1 > y2) swap(y1, y2);
-                        if (x1 > x2) swap(x1, x2);
-                        REP3 (y, y1, y2 + 1) {
-                            REP3 (x, x1, x2 + 1) {
-                                if (board[y][x] != -1 and board[y][x] != c) {
-                                    goto next_pair;
-                                }
-                            }
-                        }
-                        // found
-                        found = true;
-                        tie(y1, x1) = color[c][ci];  // undo the swaps
-                        tie(y2, x2) = color[c][cj];
-                        rects.push_back((array<int, 4>) { y1, x1, y2, x2 });
-                        // cerr << "(" << y1 << ", " << x1 << ") (" << y2 << ", " << x2 << ")" << endl;
-                        board[y1][x1] = -1;
-                        board[y2][x2] = -1;
-                        swap(color[c][ci], color[c].back()); color[c].pop_back();  // remove from list
-                        swap(color[c][cj], color[c].back()); color[c].pop_back();
-                        goto next_color;
-next_pair: ;
-                    }
+            REP_R (ci, color[c].size()) {  // use backward
+                REP (cj, ci) {
+                    if (not is_valid_pair(board, color[c][ci], color[c][cj])) continue;
+                    use_pair(board, color[c], ci, cj, rects);
+                    found = true;
+                    goto next_color;
                 }
+            }
 next_color: ;
-            }
-            if (not found) break;
         }
-        return rects;
+        if (not found) break;
     }
+    return rects;
+}
 
-    vector<array<int, 4> > operator () () const {
-        vector<array<int, 4> > result;
-        int iteration = 0;
-        double last_t = (rdtsc() - clock_begin) / TLE;
-        double max_delta = 0;
-        for (; ; ++ iteration) {
-            double t = (rdtsc() - clock_begin) / TLE;
-            if (t + 2 * max_delta + 0.05 > 0.50) break;
-            vector<array<int, 4> > it = solve1();
-            if (result.size() < it.size()) {
-                result = it;
-                cerr << "score = " << (result.size() /(double) (H * W / 2)) << endl;
-                if (int(result.size()) == H * W / 2) {
-                    ++ iteration;
-                    break;  // the optimal
+template <class RandomEngine>
+vector<array<int, 4> > solve1(int H, int W, int C, vector<vector<int> > board, vector<array<int, 4> > rects, RandomEngine & gen) {
+    vector<vector<pair<int, int> > > color(C);
+    REP (y, H) REP (x, W) if (board[y][x] != -1) {
+        color[board[y][x]].emplace_back(y, x);
+    }
+    REP (c, C) {
+        shuffle(ALL(color[c]), gen);
+    }
+    while (true) {
+        bool found = false;
+        REP (c, C) {
+            REP (ci, color[c].size()) {
+                REP (cj, ci) {
+                    if (not is_valid_pair(board, color[c][ci], color[c][cj])) continue;
+                    use_pair(board, color[c], ci, cj, rects);
+                    found = true;
+                    goto next_color;
                 }
             }
-            chmax(max_delta, t - last_t);
-            last_t = t;
+next_color: ;
         }
-        cerr << "iteration = " << iteration << endl;
+        if (not found) break;
+    }
+    return rects;
+}
+
+vector<array<int, 4> > solve(int H, int W, int C, vector<vector<int> > const & a_board) {
+    vector<vector<int> > board = a_board;
+    vector<array<int, 4> > base = solve_prepare(H, W, C, board, (H * W - 1000) / 2);
+    cerr << "prepare score = " << (base.size() /(double) (H * W / 2)) << endl;
+#ifdef LOCAL
+    REP (y, H) {
+        REP (x, W) {
+            if (board[y][x] == -1) {
+                cerr << '.';
+            } else {
+                cerr << board[y][x];
+            }
+        }
+        cerr << endl;
+    }
+#endif
+
+    vector<array<int, 4> > result;
+    random_device device;
+    xor_shift_128 gen(device());
+    int iteration = 0;
+    double last_t = (rdtsc() - clock_begin) / TLE;
+    double max_delta = 0;
+    for (; ; ++ iteration) {
+
         double t = (rdtsc() - clock_begin) / TLE;
-        cerr << "time = " << t << endl;
-        cerr << "max delta = " << max_delta << endl;
-        return result;
+        if (t + 2 * max_delta + 0.05 > 0.50) break;
+        vector<array<int, 4> > it = solve1(H, W, C, board, base, gen);
+        if (result.size() < it.size()) {
+            result = it;
+            cerr << "score = " << (result.size() /(double) (H * W / 2)) << endl;
+            if (int(result.size()) == H * W / 2) {
+                ++ iteration;
+                break;  // the optimal
+            }
+        }
+        chmax(max_delta, t - last_t);
+        last_t = t;
     }
 
-private:
-    bool is_on_field(int y, int x) const {
-        return 0 <= y and y < H and 0 <= x and x < W;
-    }
-};
+    cerr << "iteration = " << iteration << endl;
+    double t = (rdtsc() - clock_begin) / TLE;
+    cerr << "time = " << t << endl;
+    cerr << "max delta = " << max_delta << endl;
+    return result;
+}
 
 class SameColorPairs {
 public:
@@ -165,15 +203,17 @@ public:
         cerr << "H = " << H << endl;
         cerr << "W = " << W << endl;
         cerr << "C = " << C << endl;
+#ifdef LOCAL
         REP (y, H) {
             REP (x, W) {
                 cerr << board[y][x];
             }
             cerr << endl;
         }
+#endif
 
         // solve
-        vector<array<int, 4> > result = Solver(H, W, C, board)();
+        vector<array<int, 4> > result = solve(H, W, C, board);
 
         // make output
         vector<string> answer;
