@@ -131,129 +131,6 @@ void apply_unreliable_rects(vector<vector<int> > & board, vector<array<int, 4> >
     rects.resize(l);
 }
 
-template <class Comparator>
-vector<array<int, 4> > solve_prepare(int H, int W, int C, vector<vector<int> > board, int limit, Comparator compare) {
-    vector<vector<pair<int, int> > > color(C);
-    REP (y, H) REP (x, W) {
-        color[board[y][x]].emplace_back(y, x);
-    }
-    REP (c, C) {
-        sort(ALL(color[c]), compare);
-    }
-    vector<array<int, 4> > rects;
-    while ((int)rects.size() < limit) {
-        bool found = false;
-        REP (c, C) {
-            REP_R (i, color[c].size()) {  // use backward
-                REP (j, i) {
-                    if (not is_valid_pair(board, color[c][i], color[c][j])) continue;
-                    use_pair(board, color[c][i], color[c][j], rects);
-                    swap(color[c][i], color[c].back()); color[c].pop_back();  // drop i at first, since j < i
-                    swap(color[c][j], color[c].back()); color[c].pop_back();
-                    found = true;
-                    goto next_color;
-                }
-            }
-next_color: ;
-        }
-        if (not found) break;
-    }
-    return rects;
-}
-
-template <class RandomEngine>
-vector<int> make_order(int H, int W, vector<vector<int> > & board, vector<pair<pair<int, int>, pair<int, int> > > const & pairs, RandomEngine & gen) {
-    vector<int> result;
-    map<pair<int, int>, vector<int> > depended;
-    vector<pair<int, int> > cont(pairs.size(), make_pair(-1, -1));
-    function<void (int)> go = [&](int i) {
-        auto const & p1 = pairs[i].first;
-        auto const & p2 = pairs[i].second;
-        if (is_valid_pair(board, p1, p2, cont[i])) {
-            use_pair(board, p1, p2);
-            result.push_back(i);
-            for (auto pi : { p1, p2 }) {
-                auto it = depended.find(pi);
-                if (it == depended.end()) continue;
-                for (int j : it->second) {
-                    go(j);
-                }
-                it->second = vector<int>();  // relase
-            }
-        } else {
-            depended[cont[i]].push_back(i);
-        }
-    };
-    REP (i, pairs.size()) {
-        go(i);
-    }
-    return result;
-}
-
-template <class RandomEngine>
-vector<array<int, 4> > solve_sa_body(int H, int W, int C, vector<vector<int> > const & original_board, double clock_end, RandomEngine & gen) {
-    int already_removed = 0;
-    REP (y, H) REP (x, W) {
-        already_removed += original_board[y][x] == -1;
-    }
-    vector<vector<int> > board = original_board;
-    vector<array<int, 4> > best_rects;
-    vector<array<int, 4> > rects;
-
-    int iteration = 0;
-    for (; ; ++ iteration) {
-        if (rdtsc() > clock_end) break;
-
-        vector<pair<pair<int, int>, pair<int, int> > > pairs;
-        vector<vector<pair<int, int> > > color(C);
-        REP (y, H) REP (x, W) if (board[y][x] != -1) {
-            color[board[y][x]].emplace_back(y, x);
-        }
-        REP (c, C) {
-            shuffle(ALL(color[c]), gen);
-        }
-        while (true) {
-            bool found = false;
-            REP (c, C) {
-                int k = color[c].size();
-                if (k == 0) continue;
-                found = true;
-                pairs.emplace_back(color[c][k - 1], color[c][k - 2]);
-                color[c].pop_back();
-                color[c].pop_back();
-            }
-            if (not found) break;
-        }
-        vector<int> result = make_order(H, W, board, pairs, gen);
-        for (int i : result) {
-            rects.push_back(to_array(pairs[i]));
-        }
-
-        if (rects.size() > best_rects.size()) {
-            best_rects = rects;
-            if (already_removed + 2 * int(best_rects.size()) == H * W) return best_rects;
-            cerr << "score = " << (already_removed + 2 * best_rects.size()) /(double) (H * W) << endl;
-        }
-
-        if (result.empty()) {
-            double r = uniform_real_distribution<double>()(gen);
-            int k = uniform_int_distribution<int>(0, r < 0.00001 ? 1000 : r < 0.001 ? 100 : 2)(gen);
-            while (k -- and not rects.empty()) {
-                int y1 = rects.back()[0];
-                int x1 = rects.back()[1];
-                int y2 = rects.back()[2];
-                int x2 = rects.back()[3];
-                rects.pop_back();
-                board[y1][x1] = original_board[y1][x1];
-                board[y2][x2] = original_board[y2][x2];
-            }
-        }
-    }
-
-    cerr << "iteration = " << iteration << endl;
-    return best_rects;
-}
-
 vector<array<int, 4> > with_prefix(int H, int W, int C, vector<vector<int> > const & original_board, vector<array<int, 4> > const & prefix, function<vector<array<int, 4> > (int, int, int, vector<vector<int> > const &)> cont) {
     // make new board
     vector<vector<int> > board = original_board;
@@ -303,36 +180,7 @@ vector<array<int, 4> > with_prefix(int H, int W, int C, vector<vector<int> > con
 }
 
 template <class RandomEngine>
-vector<array<int, 4> > solve_sa(int H, int W, int C, vector<vector<int> > board, double sec, RandomEngine & gen) {
-    double clock_begin = rdtsc();
-    auto sq = [](int x) { return x * x; };
-    vector<array<int, 4> > prefix = solve_prepare(H, W, C, board, (H * W - 1000) / 2, [&](pair<int, int> const & p1, pair<int, int> const & p2) {
-        int y1, x1; tie(y1, x1) = p1;
-        int y2, x2; tie(y2, x2) = p2;
-        int a1 = sq(2 * y1 - H) + sq(2 * x1 - W);
-        int a2 = sq(2 * y2 - H) + sq(2 * x2 - W);
-        return a1 < a2;
-    });
-    cerr << "prepare score = " << (prefix.size() /(double) (H * W / 2)) << endl;
-    return with_prefix(H, W, C, board, prefix, [&](int h, int w, int c, vector<vector<int> > const & nboard) {
-#ifdef LOCAL
-        REP (y, h) {
-            REP (x, w) {
-                if (nboard[y][x] == -1) {
-                    cerr << '.';
-                } else {
-                    cerr << nboard[y][x];
-                }
-            }
-            cerr << endl;
-        }
-#endif
-        return solve_sa_body(h, w, c, nboard, clock_begin + sec, gen);
-    });
-}
-
-template <class RandomEngine>
-vector<array<int, 4> > solve_greedy_body(int H, int W, int C, vector<vector<int> > board, RandomEngine & gen) {
+vector<array<int, 4> > solve_greedy_once(int H, int W, int C, vector<vector<int> > board, RandomEngine & gen) {
     vector<vector<pair<int, int> > > color(C);
     REP (y, H) REP (x, W) {
         if (board[y][x] != -1) {
@@ -367,34 +215,6 @@ next_color: ;
 }
 
 template <class RandomEngine>
-vector<array<int, 4> > solve_greedy(int H, int W, int C, vector<vector<int> > const & board, double sec, RandomEngine & gen) {
-    vector<array<int, 4> > result;
-    int iteration = 0;
-    double clock_begin = rdtsc();
-    double last_t = rdtsc();
-    double max_delta = 0;
-    for (; ; ++ iteration) {
-        double t = rdtsc();
-        if (t + 2 * max_delta + 0.5 > clock_begin + sec) break;
-        vector<array<int, 4> > it = solve_greedy_body(H, W, C, board, gen);
-        if (result.size() < it.size()) {
-            result = it;
-            cerr << "score = " << (2 * result.size()) /(double) (H * W) << endl;
-            if (2 * int(result.size()) == H * W) {
-                ++ iteration;
-                break;  // the optimal
-            }
-        }
-        chmax(max_delta, t - last_t);
-        last_t = t;
-    }
-    cerr << "iteration = " << iteration << endl;
-    cerr << "time = " << (rdtsc() - clock_begin) << endl;
-    cerr << "max delta = " << max_delta << endl;
-    return result;
-}
-
-template <class RandomEngine>
 vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> > const & original_board, double sec, RandomEngine & gen) {
     vector<array<int, 4> > result;
     vector<array<int, 4> > cur;
@@ -407,6 +227,7 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
         double t = rdtsc();
         if (t + 2 * max_delta + 0.5 > clock_begin + sec) break;
 
+        // prepare board and the prefix of nxt
         vector<array<int, 4> > nxt = cur;
         if (not nxt.empty()) {
             int i = uniform_int_distribution<int>(0, nxt.size() - 1)(gen);
@@ -415,9 +236,11 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
         vector<vector<int> > board = original_board;
         apply_unreliable_rects(board, nxt);
 
-        vector<array<int, 4> > delta = solve_greedy_body(H, W, C, board, gen);
+        // run greedy
+        vector<array<int, 4> > delta = solve_greedy_once(H, W, C, board, gen);
         copy(ALL(delta), back_inserter(nxt));
 
+        // update cur and result
         int size_delta = int(nxt.size()) - int(cur.size());
         if (cur.size() <= nxt.size() or bernoulli_distribution((exp(size_delta) / (t - clock_begin) * sec))(gen)) {
             cur = nxt;
