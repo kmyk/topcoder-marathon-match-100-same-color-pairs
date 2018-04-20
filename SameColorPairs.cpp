@@ -104,20 +104,14 @@ void use_pair(vector<vector<int> > & board, pair<int, int> const & p1, pair<int,
     board[y2][x2] = -1;
 }
 
-vector<array<int, 4> > solve_prepare(int H, int W, int C, vector<vector<int> > & board, int limit) {
+template <class Comparator>
+vector<array<int, 4> > solve_prepare(int H, int W, int C, vector<vector<int> > board, int limit, Comparator compare) {
     vector<vector<pair<int, int> > > color(C);
     REP (y, H) REP (x, W) {
         color[board[y][x]].emplace_back(y, x);
     }
     REP (c, C) {
-        auto sq = [](int x) { return x * x; };
-        sort(ALL(color[c]), [&](pair<int, int> const & p1, pair<int, int> const & p2) {
-            int y1, x1; tie(y1, x1) = p1;
-            int y2, x2; tie(y2, x2) = p2;
-            int a1 = sq(2 * y1 - H) + sq(2 * x1 - W);
-            int a2 = sq(2 * y2 - H) + sq(2 * x2 - W);
-            return a1 < a2;
-        });
+        sort(ALL(color[c]), compare);
     }
     vector<array<int, 4> > rects;
     while ((int)rects.size() < limit) {
@@ -233,25 +227,92 @@ vector<array<int, 4> > solve_sa_body(int H, int W, int C, vector<vector<int> > c
     return best_rects;
 }
 
+void apply_rects(vector<vector<int> > & board, vector<array<int, 4> > const & rects) {
+    for (auto const & rect : rects) {
+        int y1 = rect[0];
+        int x1 = rect[1];
+        int y2 = rect[2];
+        int x2 = rect[3];
+        board[y1][x1] = -1;
+        board[y2][x2] = -1;
+    }
+}
+
+vector<array<int, 4> > with_prefix(int H, int W, int C, vector<vector<int> > const & original_board, vector<array<int, 4> > const & prefix, function<vector<array<int, 4> > (int, int, int, vector<vector<int> > const &)> cont) {
+    // make new board
+    vector<vector<int> > board = original_board;
+    apply_rects(board, prefix);
+
+    // check empty rows and cols
+    vector<bool> is_empty_row(H, true);
+    vector<bool> is_empty_col(W, true);
+    REP (y, H) REP (x, W) {
+        if (board[y][x] != -1) {
+            is_empty_row[y] = false;
+            is_empty_col[x] = false;
+        }
+    }
+
+    // construct maps
+    vector<int> map_row;
+    vector<int> map_col;
+    REP (y, H) if (not is_empty_row[y]) map_row.push_back(y);
+    REP (x, W) if (not is_empty_col[x]) map_col.push_back(x);
+
+    // construct the compressed board
+    vector<vector<int> > nboard(map_row.size(), vector<int>(map_col.size()));
+    REP (y, map_row.size()) {
+        REP (x, map_col.size()) {
+            nboard[y][x] = board[map_row[y]][map_col[x]];
+        }
+    }
+
+    // call the continuation
+    vector<array<int, 4> > delta = cont(map_row.size(), map_col.size(), C, nboard);
+
+    // make the return value
+    vector<array<int, 4> > result = prefix;
+    for (auto const & rect : delta) {
+        int y1 = rect[0];
+        int x1 = rect[1];
+        int y2 = rect[2];
+        int x2 = rect[3];
+        y1 = map_row[y1];
+        x1 = map_col[x1];
+        y2 = map_row[y2];
+        x2 = map_col[x2];
+        result.push_back((array<int, 4>) { y1, x1, y2, x2 });
+    }
+    return result;
+}
+
 template <class RandomEngine>
 vector<array<int, 4> > solve_sa(int H, int W, int C, vector<vector<int> > board, double sec, RandomEngine & gen) {
     double clock_begin = rdtsc();
-    vector<array<int, 4> > base = solve_prepare(H, W, C, board, (H * W - 1000) / 2);
-    cerr << "prepare score = " << (base.size() /(double) (H * W / 2)) << endl;
+    auto sq = [](int x) { return x * x; };
+    vector<array<int, 4> > prefix = solve_prepare(H, W, C, board, (H * W - 1000) / 2, [&](pair<int, int> const & p1, pair<int, int> const & p2) {
+        int y1, x1; tie(y1, x1) = p1;
+        int y2, x2; tie(y2, x2) = p2;
+        int a1 = sq(2 * y1 - H) + sq(2 * x1 - W);
+        int a2 = sq(2 * y2 - H) + sq(2 * x2 - W);
+        return a1 < a2;
+    });
+    cerr << "prepare score = " << (prefix.size() /(double) (H * W / 2)) << endl;
+    return with_prefix(H, W, C, board, prefix, [&](int h, int w, int c, vector<vector<int> > const & nboard) {
 #ifdef LOCAL
-    REP (y, H) {
-        REP (x, W) {
-            if (board[y][x] == -1) {
-                cerr << '.';
-            } else {
-                cerr << board[y][x];
+        REP (y, h) {
+            REP (x, w) {
+                if (nboard[y][x] == -1) {
+                    cerr << '.';
+                } else {
+                    cerr << nboard[y][x];
+                }
             }
+            cerr << endl;
         }
-        cerr << endl;
-    }
 #endif
-    vector<array<int, 4> > result = solve_sa_body(H, W, C, board, clock_begin + sec, gen);
-    return vector_concat(base, result);
+        return solve_sa_body(h, w, c, nboard, clock_begin + sec, gen);
+    });
 }
 
 template <class RandomEngine>
