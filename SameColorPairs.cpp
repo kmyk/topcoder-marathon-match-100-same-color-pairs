@@ -43,13 +43,25 @@ inline double rdtsc() { // in seconds
     return (((uint64_t)hi << 32) | lo) * ticks_per_sec_inv;
 }
 constexpr int TLE = 10; // sec
-double clock_begin;
 
 inline array<int, 4> to_array(pair<int, int> const & p1, pair<int, int> const & p2) {
     return (array<int, 4>) { p1.first, p1.second, p2.first, p2.second };
 }
 inline array<int, 4> to_array(pair<pair<int, int>, pair<int, int> > const & p12) {
     return to_array(p12.first, p12.second);
+}
+
+template <class T>
+vector<T> vector_concat(vector<T> const & a, vector<T> const & b) {
+    vector<T> c;
+    copy(ALL(a), back_inserter(c));
+    copy(ALL(b), back_inserter(c));
+    return c;
+}
+
+template <class T>
+vector<T> const & vector_max_size(vector<T> const & a, vector<T> const & b) {
+    return a.size() >= b.size() ? a : b;
 }
 
 bool is_valid_pair(vector<vector<int> > const & board, pair<int, int> const & p1, pair<int, int> const & p2, pair<int, int> & cont) {
@@ -115,7 +127,7 @@ vector<array<int, 4> > solve_prepare(int H, int W, int C, vector<vector<int> > &
                 REP (j, i) {
                     if (not is_valid_pair(board, color[c][i], color[c][j])) continue;
                     use_pair(board, color[c][i], color[c][j], rects);
-                    swap(color[c][i], color[c].back()); color[c].pop_back();
+                    swap(color[c][i], color[c].back()); color[c].pop_back();  // drop i at first, since j < i
                     swap(color[c][j], color[c].back()); color[c].pop_back();
                     found = true;
                     goto next_color;
@@ -158,7 +170,7 @@ vector<int> make_order(int H, int W, vector<vector<int> > & board, vector<pair<p
 }
 
 template <class RandomEngine>
-vector<array<int, 4> > solve1(int H, int W, int C, vector<vector<int> > const & original_board, RandomEngine & gen) {
+vector<array<int, 4> > solve_sa_body(int H, int W, int C, vector<vector<int> > const & original_board, double clock_end, RandomEngine & gen) {
     int already_removed = 0;
     REP (y, H) REP (x, W) {
         already_removed += original_board[y][x] == -1;
@@ -169,8 +181,7 @@ vector<array<int, 4> > solve1(int H, int W, int C, vector<vector<int> > const & 
 
     int iteration = 0;
     for (; ; ++ iteration) {
-        double t = (rdtsc() - clock_begin) / TLE;
-        if (t > 0.95) break;
+        if (rdtsc() > clock_end) break;
 
         vector<pair<pair<int, int>, pair<int, int> > > pairs;
         vector<vector<pair<int, int> > > color(C);
@@ -222,16 +233,9 @@ vector<array<int, 4> > solve1(int H, int W, int C, vector<vector<int> > const & 
     return best_rects;
 }
 
-template <class T>
-vector<T> vector_concat(vector<T> const & a, vector<T> const & b) {
-    vector<T> c;
-    copy(ALL(a), back_inserter(c));
-    copy(ALL(b), back_inserter(c));
-    return c;
-}
-
-vector<array<int, 4> > solve(int H, int W, int C, vector<vector<int> > const & a_board) {
-    vector<vector<int> > board = a_board;
+template <class RandomEngine>
+vector<array<int, 4> > solve_sa(int H, int W, int C, vector<vector<int> > board, double sec, RandomEngine & gen) {
+    double clock_begin = rdtsc();
     vector<array<int, 4> > base = solve_prepare(H, W, C, board, (H * W - 1000) / 2);
     cerr << "prepare score = " << (base.size() /(double) (H * W / 2)) << endl;
 #ifdef LOCAL
@@ -246,16 +250,95 @@ vector<array<int, 4> > solve(int H, int W, int C, vector<vector<int> > const & a
         cerr << endl;
     }
 #endif
+    vector<array<int, 4> > result = solve_sa_body(H, W, C, board, clock_begin + sec, gen);
+    return vector_concat(base, result);
+}
+
+template <class RandomEngine>
+vector<array<int, 4> > solve_greedy_body(int H, int W, int C, vector<vector<int> > board, RandomEngine & gen) {
+    vector<vector<pair<int, int> > > color(C);
+    REP (y, H) REP (x, W) {
+        color[board[y][x]].emplace_back(y, x);
+    }
+    REP (c, C) {
+        shuffle(ALL(color[c]), gen);
+    }
+    vector<array<int, 4> > rects;
+    vector<int> i_of(C);
+    while (true) {
+        bool found = false;
+        REP (c, C) {
+            REP (count, color[c].size()) {
+                if (i_of[c] >= int(color[c].size())) i_of[c] = 0;
+                int i = i_of[c] ++;
+                REP (j, color[c].size()) if (i < j) {
+                    if (not is_valid_pair(board, color[c][i], color[c][j])) continue;
+                    found = true;
+                    use_pair(board, color[c][i], color[c][j], rects);
+                    swap(color[c][j], color[c].back()); color[c].pop_back();  // drop j at first, since i < j
+                    swap(color[c][i], color[c].back()); color[c].pop_back();
+                    goto next_color;
+                }
+            }
+next_color: ;
+        }
+        if (not found) break;
+    }
+    return rects;
+}
+
+template <class RandomEngine>
+vector<array<int, 4> > solve_greedy(int H, int W, int C, vector<vector<int> > const & board, double sec, RandomEngine & gen) {
+    vector<array<int, 4> > result;
+    int iteration = 0;
+    double clock_begin = rdtsc();
+    double last_t = rdtsc();
+    double max_delta = 0;
+    for (; ; ++ iteration) {
+        double t = rdtsc();
+        if (t + 2 * max_delta + 0.5 > clock_begin + sec) break;
+        vector<array<int, 4> > it = solve_greedy_body(H, W, C, board, gen);
+        if (result.size() < it.size()) {
+            result = it;
+            cerr << "score = " << (2 * result.size()) /(double) (H * W) << endl;
+            if (2 * int(result.size()) == H * W) {
+                ++ iteration;
+                break;  // the optimal
+            }
+        }
+        chmax(max_delta, t - last_t);
+        last_t = t;
+    }
+    cerr << "iteration = " << iteration << endl;
+    cerr << "time = " << (rdtsc() - clock_begin) << endl;
+    cerr << "max delta = " << max_delta << endl;
+    return result;
+}
+
+vector<array<int, 4> > solve(int H, int W, int C, vector<vector<int> > const & board) {
     random_device device;
     xor_shift_128 gen(device());
-    vector<array<int, 4> > result = solve1(H, W, C, board, gen);
-    return vector_concat(base, result);
+    double t1, t2;  // sec
+    if (C == 6) {
+        t1 = 0.0;
+        t2 = 9.0;
+    } else if (C == 5) {
+        t1 = 6.0;
+        t2 = 3.0;
+    } else {
+        t1 = 8.0;
+        t2 = 1.0;
+    }
+    auto result1 = (C != 6 ? solve_sa(H, W, C, board, t1, gen) : vector<array<int, 4> >());
+    if (2 * int(result1.size()) == H * W) return result1;
+    auto result2 = solve_greedy(H, W, C, board, t2, gen);
+    return vector_max_size(result1, result2);
 }
 
 class SameColorPairs {
 public:
     vector<string> removePairs(vector<string> a_board) {
-        clock_begin = rdtsc();
+        double clock_begin = rdtsc();
 
         // parse input
         int H = a_board.size();
@@ -298,7 +381,7 @@ public:
             oss << rect[3];
             answer.push_back(oss.str());
         }
-        double t = (rdtsc() - clock_begin) / TLE;
+        double t = rdtsc() - clock_begin;
         cerr << "time = " << t << endl;
         return answer;
     }
