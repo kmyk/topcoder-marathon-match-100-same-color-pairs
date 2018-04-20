@@ -159,12 +159,10 @@ vector<int> make_order(int H, int W, vector<vector<int> > & board, vector<pair<p
 
 template <class RandomEngine>
 vector<array<int, 4> > solve1(int H, int W, int C, vector<vector<int> > const & original_board, RandomEngine & gen) {
-#ifdef LOCAL
     int already_removed = 0;
     REP (y, H) REP (x, W) {
         already_removed += original_board[y][x] == -1;
     }
-#endif
     vector<vector<int> > board = original_board;
     vector<array<int, 4> > best_rects;
     vector<array<int, 4> > rects;
@@ -201,9 +199,8 @@ vector<array<int, 4> > solve1(int H, int W, int C, vector<vector<int> > const & 
 
         if (rects.size() > best_rects.size()) {
             best_rects = rects;
-#ifdef LOCAL
+            if (already_removed + 2 * int(best_rects.size()) == H * W) return best_rects;
             cerr << "score = " << (already_removed + 2 * best_rects.size()) /(double) (H * W) << endl;
-#endif
         }
 
         if (result.empty()) {
