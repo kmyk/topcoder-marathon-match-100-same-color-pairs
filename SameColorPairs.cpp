@@ -246,7 +246,7 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
             cur = nxt;
             if (result.size() < cur.size()) {
                 result = nxt;
-                cerr << "score = " << (2 * result.size()) /(double) (H * W) << endl;
+                cerr << "score = " << H * W - 2 * int(result.size()) << " / " << H * W << endl;
                 if (2 * int(result.size()) == H * W) {
                     ++ iteration;
                     break;  // the optimal

@@ -111,8 +111,8 @@ public class SameColorPairsVis {
       }
     }
     // -----------------------------------------
-    double getScore() {
-        return curTiles * 1.0 / (H * W);
+    int getScore() {
+        return H * W - curTiles;
     }
     // -----------------------------------------
     String removePair(int r1, int c1, int r2, int c2) {
@@ -135,7 +135,7 @@ public class SameColorPairsVis {
         return "";
     }
     // -----------------------------------------
-    public double runTest(String seed) {
+    public int runTest(String seed) {
       try {
         String test = generate(seed);
         if (debug)
@@ -165,17 +165,17 @@ public class SameColorPairsVis {
                 moves = removePairs(boardArg);
             } catch (Exception e) {
                 addFatalError("Failed to get result from removePairs.");
-                return -1.0;
+                return H*W;
             }
 
             // check the return and score it
             if (moves == null) {
                 addFatalError("Your return contained invalid number of elements.");
-                return -1.0;
+                return H*W;
             }
             if (moves.length > W*H/2) {
                 addFatalError("Your return contained more than " + (W*H/2) + " elements.");
-                return -1.0;
+                return H*W;
             }
 
             // parse each move and simulate it
@@ -186,7 +186,7 @@ public class SameColorPairsVis {
                 int R1, C1, R2, C2;
                 if (s.length != 4) {
                     addFatalError("Move " + i + ": Each element of your return must be formatted as \"R1 C1 R2 C2\"");
-                    return -1.0;
+                    return H*W;
                 }
                 // check the cell we want to start roll from
                 try {
@@ -197,22 +197,22 @@ public class SameColorPairsVis {
                 }
                 catch (Exception e) {
                     addFatalError("Move " + i + ": All numbers in each element of your return must be integers.");
-                    return -1.0;
+                    return H*W;
                 }
                 if (!isInside(R1, C1)) {
                     addFatalError("Move " + i + ": R1 and C1 in each element of your return must specify a cell within the board.");
-                    return -1.0;
+                    return H*W;
                 }
                 if (!isInside(R2, C2)) {
                     addFatalError("Move " + i + ": R2 and C2 in each element of your return must specify a cell within the board.");
-                    return -1.0;
+                    return H*W;
                 }
 
                 // try to remove the tiles
                 String errmes = removePair(R1, C1, R2, C2);
                 if (!errmes.equals("")) {
                     addFatalError("Move " + i + ": " + errmes);
-                    return -1.0;
+                    return H*W;
                 }
 
                 if (vis) {
@@ -238,7 +238,7 @@ public class SameColorPairsVis {
       catch (Exception e) { 
         addFatalError("An exception occurred while trying to get your program's results.");
         e.printStackTrace(); 
-        return -1.0;
+        return H*W;
       }
     }
 // ------------- visualization part ------------
@@ -361,7 +361,7 @@ public class SameColorPairsVis {
             g2.setColor(Color.BLACK);
             g2.setFont(new Font("Arial",Font.BOLD,14));
             FontMetrics fm = g2.getFontMetrics();
-            g2.drawString(String.format("%.4f", getScore()), W*SZ+25, 110+fm.getHeight());
+            g2.drawString(String.format("%d / %d", getScore(), H*W), W*SZ+25, 110+fm.getHeight());
 
             g.drawImage(bi,0,0,W*SZ+120,H*SZ+40,null);
         }
@@ -475,7 +475,7 @@ public class SameColorPairsVis {
                 new ErrorReader(proc.getErrorStream()).start();
             } catch (Exception e) { e.printStackTrace(); }
         }
-        System.out.println("Score = " + runTest(seed));
+        System.out.println("Score = " + runTest(seed) + " / " + (H*W));
         if (proc != null)
             try { proc.destroy(); } 
             catch (Exception e) { e.printStackTrace(); }
