@@ -397,7 +397,8 @@ vector<array<int, 4> > solve_greedy(int H, int W, int C, vector<vector<int> > co
 template <class RandomEngine>
 vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> > const & original_board, double sec, RandomEngine & gen) {
     vector<array<int, 4> > result;
-    vector<array<int, 4> > rects;
+    vector<array<int, 4> > cur;
+
     int iteration = 0;
     double clock_begin = rdtsc();
     double last_t = rdtsc();
@@ -405,22 +406,31 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
     for (; ; ++ iteration) {
         double t = rdtsc();
         if (t + 2 * max_delta + 0.5 > clock_begin + sec) break;
-        if (not rects.empty()) {
-            int i = uniform_int_distribution<int>(0, rects.size() - 1)(gen);
-            rects.erase(rects.begin() + i);
+
+        vector<array<int, 4> > nxt = cur;
+        if (not nxt.empty()) {
+            int i = uniform_int_distribution<int>(0, nxt.size() - 1)(gen);
+            nxt.erase(nxt.begin() + i);
         }
         vector<vector<int> > board = original_board;
-        apply_unreliable_rects(board, rects);
+        apply_unreliable_rects(board, nxt);
+
         vector<array<int, 4> > delta = solve_greedy_body(H, W, C, board, gen);
-        copy(ALL(delta), back_inserter(rects));
-        if (result.size() < rects.size()) {
-            result = rects;
-            cerr << "score = " << (2 * result.size()) /(double) (H * W) << endl;
-            if (2 * int(result.size()) == H * W) {
-                ++ iteration;
-                break;  // the optimal
+        copy(ALL(delta), back_inserter(nxt));
+
+        int size_delta = int(nxt.size()) - int(cur.size());
+        if (cur.size() <= nxt.size() or bernoulli_distribution((exp(size_delta) / (t - clock_begin) * sec))(gen)) {
+            cur = nxt;
+            if (result.size() < cur.size()) {
+                result = nxt;
+                cerr << "score = " << (2 * result.size()) /(double) (H * W) << endl;
+                if (2 * int(result.size()) == H * W) {
+                    ++ iteration;
+                    break;  // the optimal
+                }
             }
         }
+
         chmax(max_delta, t - last_t);
         last_t = t;
     }
