@@ -64,7 +64,25 @@ vector<T> const & vector_max_size(vector<T> const & a, vector<T> const & b) {
     return a.size() >= b.size() ? a : b;
 }
 
-bool is_valid_pair(vector<vector<int> > const & board, pair<int, int> const & p1, pair<int, int> const & p2, pair<int, int> & cont) {
+inline void find_next_with_path_compression(int w, vector<vector<int> > & board, int y, int & x, vector<int> & stk) {
+    assert (board[y][x] < 0);
+    int nx = x - board[y][x];
+    if (nx < w and board[y][nx] < 0) {
+        while (x < w and board[y][x] < 0) {
+            stk.push_back(x);
+            x -= board[y][x];
+        }
+        while (not stk.empty()) {
+            int px = stk.back();
+            stk.pop_back();
+            board[y][px] = px - x;
+        }
+    } else {
+        x = nx;
+    }
+}
+
+bool is_valid_pair(vector<vector<int> > & board, pair<int, int> const & p1, pair<int, int> const & p2, pair<int, int> & cont) {
     int y1, x1; tie(y1, x1) = p1;
     int y2, x2; tie(y2, x2) = p2;
     int c = board[y1][x1];
@@ -74,9 +92,15 @@ bool is_valid_pair(vector<vector<int> > const & board, pair<int, int> const & p1
     int & x = cont.second;
     if (y == -1) y = y1;
     if (x == -1) x = x1;
+    vector<int> stk;
+    int w = board[0].size();
     for (; y < y2 + 1; ++ y) {
-        for (; x < x2 + 1; ++ x) {
-            if (board[y][x] != -1 and board[y][x] != c) {
+        for (; x < x2 + 1; ) {
+            if (board[y][x] < 0) {
+                find_next_with_path_compression(w, board, y, x, stk);
+            } else if (board[y][x] == c) {
+                ++ x;
+            } else {
                 return false;
             }
         }
@@ -85,9 +109,23 @@ bool is_valid_pair(vector<vector<int> > const & board, pair<int, int> const & p1
     return true;
 }
 
-inline bool is_valid_pair(vector<vector<int> > const & board, pair<int, int> const & p1, pair<int, int> const & p2) {
+inline bool is_valid_pair(vector<vector<int> > & board, pair<int, int> const & p1, pair<int, int> const & p2) {
     pair<int, int> cont = { -1, -1 };
     return is_valid_pair(board, p1, p2, cont);
+}
+
+void prepare_links(int H, int W, vector<vector<int> > & board) {
+    vector<int> stk;
+    int w = board[0].size();
+    REP (y, H) {
+        for (int x = 0; x < W; ) {
+            if (board[y][x] < 0) {
+                find_next_with_path_compression(w, board, y, x, stk);
+            } else {
+                ++ x;
+            }
+        }
+    }
 }
 
 void use_pair(vector<vector<int> > & board, pair<int, int> const & p1, pair<int, int> const & p2) {
@@ -104,43 +142,45 @@ void use_pair(vector<vector<int> > & board, pair<int, int> const & p1, pair<int,
     board[y2][x2] = -1;
 }
 
-void apply_rects(vector<vector<int> > & board, vector<array<int, 4> > const & rects) {
-    for (auto const & rect : rects) {
-        int y1 = rect[0];
-        int x1 = rect[1];
-        int y2 = rect[2];
-        int x2 = rect[3];
+template <class InputIterator>
+void apply_rects(vector<vector<int> > & board, InputIterator first, InputIterator last) {
+    for (; first != last; ++ first) {
+        int y1 = (*first)[0];
+        int x1 = (*first)[1];
+        int y2 = (*first)[2];
+        int x2 = (*first)[3];
         board[y1][x1] = -1;
         board[y2][x2] = -1;
     }
 }
 
-void apply_unreliable_rects(vector<vector<int> > & board, vector<array<int, 4> > & rects) {
-    int l = 0;
-    REP (r, rects.size()) {
-        int y1 = rects[r][0];
-        int x1 = rects[r][1];
-        int y2 = rects[r][2];
-        int x2 = rects[r][3];
+template <class InputIterator>
+InputIterator apply_unreliable_rects(vector<vector<int> > & board, InputIterator first, InputIterator last) {
+    InputIterator it = first;
+    for (; first != last; ++ first) {
+        int y1 = (*first)[0];
+        int x1 = (*first)[1];
+        int y2 = (*first)[2];
+        int x2 = (*first)[3];
         // assume all conditions except is_valid_pair()
         if (not is_valid_pair(board, make_pair(y1, x1), make_pair(y2, x2))) continue;
         board[y1][x1] = -1;
         board[y2][x2] = -1;
-        rects[l ++] = rects[r];
+        *(it ++) = *first;
     }
-    rects.resize(l);
+    return it;
 }
 
 vector<array<int, 4> > with_prefix(int H, int W, int C, vector<vector<int> > const & original_board, vector<array<int, 4> > const & prefix, function<vector<array<int, 4> > (int, int, int, vector<vector<int> > const &)> cont) {
     // make new board
     vector<vector<int> > board = original_board;
-    apply_rects(board, prefix);
+    apply_rects(board, ALL(prefix));
 
     // check empty rows and cols
     vector<bool> is_empty_row(H, true);
     vector<bool> is_empty_col(W, true);
     REP (y, H) REP (x, W) {
-        if (board[y][x] != -1) {
+        if (board[y][x] >= 0) {
             is_empty_row[y] = false;
             is_empty_col[x] = false;
         }
@@ -179,11 +219,32 @@ vector<array<int, 4> > with_prefix(int H, int W, int C, vector<vector<int> > con
     return result;
 }
 
+vector<array<int, 4> > with_transpose(int H, int W, int C, vector<vector<int> > const & original_board, function<vector<array<int, 4> > (int, int, int, vector<vector<int> > const &)> cont) {
+    vector<vector<int> > board(W, vector<int>(H));
+    REP (x, W) REP (y, H) {
+        board[x][y] = original_board[y][x];
+    }
+    vector<array<int, 4> > rects = cont(W, H, C, board);
+    for (auto & rect : rects) {
+        swap(rect[0], rect[1]);
+        swap(rect[2], rect[3]);
+    }
+    return rects;
+}
+
+vector<array<int, 4> > with_landscape(int H, int W, int C, vector<vector<int> > const & board, function<vector<array<int, 4> > (int, int, int, vector<vector<int> > const &)> cont) {
+    if (H > W) {
+        return with_transpose(H, W, C, board, cont);
+    } else {
+        return cont(H, W, C, board);
+    }
+}
+
 template <class RandomEngine>
 vector<array<int, 4> > solve_greedy_once(int H, int W, int C, vector<vector<int> > board, RandomEngine & gen) {
     vector<vector<pair<int, int> > > color(C);
     REP (y, H) REP (x, W) {
-        if (board[y][x] != -1) {
+        if (board[y][x] >= 0) {
             color[board[y][x]].emplace_back(y, x);
         }
     }
@@ -192,7 +253,8 @@ vector<array<int, 4> > solve_greedy_once(int H, int W, int C, vector<vector<int>
     }
     vector<array<int, 4> > rects;
     vector<int> i_of(C);
-    while (true) {
+    for (int iteration = 0; ; ++ iteration) {
+        prepare_links(H, W, board);
         bool found = false;
         REP (c, C) {
             REP (count, color[c].size()) {
@@ -218,6 +280,8 @@ template <class RandomEngine>
 vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> > const & original_board, double sec, RandomEngine & gen) {
     vector<array<int, 4> > result;
     vector<array<int, 4> > cur;
+    vector<vector<int> > saved_board = original_board;
+    int saved_size = 0;
 
     int iteration = 0;
     double clock_begin = rdtsc();
@@ -229,12 +293,31 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
 
         // prepare board and the prefix of nxt
         vector<array<int, 4> > nxt = cur;
-        if (not nxt.empty()) {
-            int i = uniform_int_distribution<int>(0, nxt.size() - 1)(gen);
-            nxt.erase(nxt.begin() + i);
+        vector<vector<int> > board;
+        int modified_i = 0;
+        if (nxt.empty()) {
+            board = original_board;
+        } else {
+            int k = nxt.size();
+            int limit = max(0, k - 500);
+            if (saved_size < limit) {
+                apply_rects(saved_board, nxt.begin() + saved_size, nxt.begin() + limit);
+                prepare_links(H, W, saved_board);
+                saved_size = limit;
+            }
+            modified_i = bernoulli_distribution(0.1)(gen) ?
+                min<int>(k - 1, sqrt(uniform_int_distribution<int>(0, k * k)(gen))) :
+                uniform_int_distribution<int>(limit, k - 1)(gen);
+            swap(nxt[modified_i], nxt.back());
+            if (modified_i >= saved_size) {
+                board = saved_board;
+                apply_rects(board, nxt.begin() + saved_size, nxt.begin() + modified_i);
+            } else {
+                board = original_board;
+                apply_rects(board, nxt.begin(), nxt.begin() + modified_i);
+            }
+            nxt.erase(apply_unreliable_rects(board, nxt.begin() + modified_i, nxt.end()), nxt.end());
         }
-        vector<vector<int> > board = original_board;
-        apply_unreliable_rects(board, nxt);
 
         // run greedy
         vector<array<int, 4> > delta = solve_greedy_once(H, W, C, board, gen);
@@ -242,8 +325,13 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
 
         // update cur and result
         int size_delta = int(nxt.size()) - int(cur.size());
-        if (cur.size() <= nxt.size() or bernoulli_distribution((exp(size_delta) / (t - clock_begin) * sec))(gen)) {
+        double prob = exp(0.2 * size_delta / (1 - (t - clock_begin) / sec));
+        if (cur.size() <= nxt.size() or bernoulli_distribution(prob)(gen)) {
             cur = nxt;
+            if (modified_i < saved_size) {
+                saved_board = original_board;
+                saved_size = 0;
+            }
             if (result.size() < cur.size()) {
                 result = nxt;
                 cerr << "score = " << H * W - 2 * int(result.size()) << " / " << H * W << endl;
@@ -266,7 +354,10 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
 vector<array<int, 4> > solve(int H, int W, int C, vector<vector<int> > const & board) {
     random_device device;
     xor_shift_128 gen(device());
-    return solve_sa_greedy(H, W, C, board, 9.0, gen);
+    vector<int> packed(H * W);
+    return with_landscape(H, W, C, board, [&](int h, int w, int c, vector<vector<int> > const & nboard) {  // use landscape mode to make linked lists more efficient
+        return solve_sa_greedy(h, w, c, nboard, 9.0, gen);
+    });
 }
 
 class SameColorPairs {
