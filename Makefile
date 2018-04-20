@@ -21,3 +21,6 @@ submit:
 	oj submit '${URL}' --language C++ ${PROBLEM}.cpp -y --open
 submit/full:
 	oj submit '${URL}' --language C++ ${PROBLEM}.cpp -y --open --full
+
+score.txt: a.out tester.jar
+	for seed in `seq 10` ; do time java -jar tester.jar -exec ./a.out -novis -seed $${seed} | tee /dev/stderr | grep 'Score =' | sed "s/Score =/$${seed})/" | tail -n 1 ; done > $@
