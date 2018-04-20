@@ -104,6 +104,33 @@ void use_pair(vector<vector<int> > & board, pair<int, int> const & p1, pair<int,
     board[y2][x2] = -1;
 }
 
+void apply_rects(vector<vector<int> > & board, vector<array<int, 4> > const & rects) {
+    for (auto const & rect : rects) {
+        int y1 = rect[0];
+        int x1 = rect[1];
+        int y2 = rect[2];
+        int x2 = rect[3];
+        board[y1][x1] = -1;
+        board[y2][x2] = -1;
+    }
+}
+
+void apply_unreliable_rects(vector<vector<int> > & board, vector<array<int, 4> > & rects) {
+    int l = 0;
+    REP (r, rects.size()) {
+        int y1 = rects[r][0];
+        int x1 = rects[r][1];
+        int y2 = rects[r][2];
+        int x2 = rects[r][3];
+        // assume all conditions except is_valid_pair()
+        if (not is_valid_pair(board, make_pair(y1, x1), make_pair(y2, x2))) continue;
+        board[y1][x1] = -1;
+        board[y2][x2] = -1;
+        rects[l ++] = rects[r];
+    }
+    rects.resize(l);
+}
+
 template <class Comparator>
 vector<array<int, 4> > solve_prepare(int H, int W, int C, vector<vector<int> > board, int limit, Comparator compare) {
     vector<vector<pair<int, int> > > color(C);
@@ -227,17 +254,6 @@ vector<array<int, 4> > solve_sa_body(int H, int W, int C, vector<vector<int> > c
     return best_rects;
 }
 
-void apply_rects(vector<vector<int> > & board, vector<array<int, 4> > const & rects) {
-    for (auto const & rect : rects) {
-        int y1 = rect[0];
-        int x1 = rect[1];
-        int y2 = rect[2];
-        int x2 = rect[3];
-        board[y1][x1] = -1;
-        board[y2][x2] = -1;
-    }
-}
-
 vector<array<int, 4> > with_prefix(int H, int W, int C, vector<vector<int> > const & original_board, vector<array<int, 4> > const & prefix, function<vector<array<int, 4> > (int, int, int, vector<vector<int> > const &)> cont) {
     // make new board
     vector<vector<int> > board = original_board;
@@ -319,7 +335,9 @@ template <class RandomEngine>
 vector<array<int, 4> > solve_greedy_body(int H, int W, int C, vector<vector<int> > board, RandomEngine & gen) {
     vector<vector<pair<int, int> > > color(C);
     REP (y, H) REP (x, W) {
-        color[board[y][x]].emplace_back(y, x);
+        if (board[y][x] != -1) {
+            color[board[y][x]].emplace_back(y, x);
+        }
     }
     REP (c, C) {
         shuffle(ALL(color[c]), gen);
@@ -376,24 +394,46 @@ vector<array<int, 4> > solve_greedy(int H, int W, int C, vector<vector<int> > co
     return result;
 }
 
+template <class RandomEngine>
+vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> > const & original_board, double sec, RandomEngine & gen) {
+    vector<array<int, 4> > result;
+    vector<array<int, 4> > rects;
+    int iteration = 0;
+    double clock_begin = rdtsc();
+    double last_t = rdtsc();
+    double max_delta = 0;
+    for (; ; ++ iteration) {
+        double t = rdtsc();
+        if (t + 2 * max_delta + 0.5 > clock_begin + sec) break;
+        if (not rects.empty()) {
+            int i = uniform_int_distribution<int>(0, rects.size() - 1)(gen);
+            rects.erase(rects.begin() + i);
+        }
+        vector<vector<int> > board = original_board;
+        apply_unreliable_rects(board, rects);
+        vector<array<int, 4> > delta = solve_greedy_body(H, W, C, board, gen);
+        copy(ALL(delta), back_inserter(rects));
+        if (result.size() < rects.size()) {
+            result = rects;
+            cerr << "score = " << (2 * result.size()) /(double) (H * W) << endl;
+            if (2 * int(result.size()) == H * W) {
+                ++ iteration;
+                break;  // the optimal
+            }
+        }
+        chmax(max_delta, t - last_t);
+        last_t = t;
+    }
+    cerr << "iteration = " << iteration << endl;
+    cerr << "time = " << (rdtsc() - clock_begin) << endl;
+    cerr << "max delta = " << max_delta << endl;
+    return result;
+}
+
 vector<array<int, 4> > solve(int H, int W, int C, vector<vector<int> > const & board) {
     random_device device;
     xor_shift_128 gen(device());
-    double t1, t2;  // sec
-    if (C == 6) {
-        t1 = 0.0;
-        t2 = 9.0;
-    } else if (C == 5) {
-        t1 = 6.0;
-        t2 = 3.0;
-    } else {
-        t1 = 8.0;
-        t2 = 1.0;
-    }
-    auto result1 = (C != 6 ? solve_sa(H, W, C, board, t1, gen) : vector<array<int, 4> >());
-    if (2 * int(result1.size()) == H * W) return result1;
-    auto result2 = solve_greedy(H, W, C, board, t2, gen);
-    return vector_max_size(result1, result2);
+    return solve_sa_greedy(H, W, C, board, 9.0, gen);
 }
 
 class SameColorPairs {
