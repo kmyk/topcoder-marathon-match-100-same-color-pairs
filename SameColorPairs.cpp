@@ -171,11 +171,7 @@ InputIterator apply_unreliable_rects(vector<vector<int> > & board, InputIterator
     return it;
 }
 
-vector<array<int, 4> > with_prefix(int H, int W, int C, vector<vector<int> > const & original_board, vector<array<int, 4> > const & prefix, function<vector<array<int, 4> > (int, int, int, vector<vector<int> > const &)> cont) {
-    // make new board
-    vector<vector<int> > board = original_board;
-    apply_rects(board, ALL(prefix));
-
+vector<array<int, 4> > with_compress(int H, int W, int C, vector<vector<int> > const & board, function<vector<array<int, 4> > (int, int, int, vector<vector<int> > const &)> cont) {
     // check empty rows and cols
     vector<bool> is_empty_row(H, true);
     vector<bool> is_empty_col(W, true);
@@ -201,22 +197,20 @@ vector<array<int, 4> > with_prefix(int H, int W, int C, vector<vector<int> > con
     }
 
     // call the continuation
-    vector<array<int, 4> > delta = cont(map_row.size(), map_col.size(), C, nboard);
+    vector<array<int, 4> > rects = cont(map_row.size(), map_col.size(), C, nboard);
 
     // make the return value
-    vector<array<int, 4> > result = prefix;
-    for (auto const & rect : delta) {
-        int y1 = rect[0];
-        int x1 = rect[1];
-        int y2 = rect[2];
-        int x2 = rect[3];
+    for (auto & rect : rects) {
+        int & y1 = rect[0];
+        int & x1 = rect[1];
+        int & y2 = rect[2];
+        int & x2 = rect[3];
         y1 = map_row[y1];
         x1 = map_col[x1];
         y2 = map_row[y2];
         x2 = map_col[x2];
-        result.push_back((array<int, 4>) { y1, x1, y2, x2 });
     }
-    return result;
+    return rects;
 }
 
 vector<array<int, 4> > with_transpose(int H, int W, int C, vector<vector<int> > const & original_board, function<vector<array<int, 4> > (int, int, int, vector<vector<int> > const &)> cont) {
@@ -238,6 +232,23 @@ vector<array<int, 4> > with_landscape(int H, int W, int C, vector<vector<int> > 
     } else {
         return cont(H, W, C, board);
     }
+}
+
+vector<array<int, 4> > with_crop(int H, int W, int C, vector<vector<int> > const & original_board, int ly, int lx, int ry, int rx, function<vector<array<int, 4> > (int, int, int, vector<vector<int> > const &)> cont) {
+    int h = ry - ly;
+    int w = rx - lx;
+    vector<vector<int> > board(h, vector<int>(w));
+    REP (y, h) REP (x, w) {
+        board[y][x] = original_board[ly + y][lx + x];
+    }
+    vector<array<int, 4> > rects = cont(h, w, C, board);
+    for (auto & rect : rects) {
+        rect[0] += ly;
+        rect[1] += lx;
+        rect[2] += ly;
+        rect[3] += lx;
+    }
+    return rects;
 }
 
 template <class RandomEngine>
@@ -277,11 +288,27 @@ next_color: ;
 }
 
 template <class RandomEngine>
-vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> > const & original_board, double sec, RandomEngine & gen) {
+vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> > const & original_board, double clock_end, RandomEngine & gen) {
     vector<array<int, 4> > result;
     vector<array<int, 4> > cur;
     vector<vector<int> > saved_board = original_board;
     int saved_size = 0;
+
+    // values for partialy solved board
+    int initial_remaining = 0;
+    REP (y, H) REP (x, W) {
+        initial_remaining += (original_board[y][x] < 0);
+    }
+    int optimal_size = 0; {  // since the numbers of cells sometimes are odd
+        vector<bool> dangling(C);
+        REP (y, H) REP (x, W) {
+            int c = original_board[y][x];
+            if (c >= 0) {
+                optimal_size += dangling[c];
+                dangling[c] = not dangling[c];
+            }
+        }
+    }
 
     int iteration = 0;
     double clock_begin = rdtsc();
@@ -289,14 +316,16 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
     double max_delta = 0;
     for (; ; ++ iteration) {
         double t = rdtsc();
-        if (t + 2 * max_delta + 0.5 > clock_begin + sec) break;
+        if (t + 2 * max_delta + 0.2 > clock_end) break;
+        double temperature = (1 - (t - clock_begin) / (clock_end - clock_begin));
 
         // prepare board and the prefix of nxt
         vector<array<int, 4> > nxt = cur;
         vector<vector<int> > board;
         int modified_i = 0;
-        if (nxt.empty()) {
+        if (nxt.empty() or bernoulli_distribution(0.01 * temperature)(gen)) {
             board = original_board;
+            nxt.clear();
         } else {
             int k = nxt.size();
             int limit = max(0, k - 500);
@@ -305,9 +334,7 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
                 prepare_links(H, W, saved_board);
                 saved_size = limit;
             }
-            modified_i = bernoulli_distribution(0.1)(gen) ?
-                min<int>(k - 1, sqrt(uniform_int_distribution<int>(0, k * k)(gen))) :
-                uniform_int_distribution<int>(limit, k - 1)(gen);
+            modified_i = uniform_int_distribution<int>(bernoulli_distribution(0.2)(gen) ? 0 : limit, k - 1)(gen);
             swap(nxt[modified_i], nxt.back());
             if (modified_i >= saved_size) {
                 board = saved_board;
@@ -325,7 +352,7 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
 
         // update cur and result
         int size_delta = int(nxt.size()) - int(cur.size());
-        double prob = exp(0.2 * size_delta / (1 - (t - clock_begin) / sec));
+        double prob = exp(0.2 * size_delta / temperature);
         if (cur.size() <= nxt.size() or bernoulli_distribution(prob)(gen)) {
             cur = nxt;
             if (modified_i < saved_size) {
@@ -334,10 +361,10 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
             }
             if (result.size() < cur.size()) {
                 result = nxt;
-                cerr << "score = " << H * W - 2 * int(result.size()) << " / " << H * W << endl;
-                if (2 * int(result.size()) == H * W) {
+                cerr << "score = " << H * W - initial_remaining - 2 * int(result.size()) << " / " << H * W << endl;
+                if (int(result.size()) == optimal_size) {
                     ++ iteration;
-                    break;  // the optimal
+                    break;
                 }
             }
         }
@@ -351,13 +378,57 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
     return result;
 }
 
-vector<array<int, 4> > solve(int H, int W, int C, vector<vector<int> > const & board) {
+vector<int> split_to_chunks(int w, int k) {
+    vector<int> ws(k + 1);
+    REP (i, k) {
+        ws[i + 1] = w * (i + 1) / k;
+    }
+    return ws;
+}
+
+vector<array<int, 4> > solve(int H, int W, int C, vector<vector<int> > const & original_board) {
+    double clock_begin = rdtsc();
     random_device device;
     xor_shift_128 gen(device());
-    vector<int> packed(H * W);
-    return with_landscape(H, W, C, board, [&](int h, int w, int c, vector<vector<int> > const & nboard) {  // use landscape mode to make linked lists more efficient
-        return solve_sa_greedy(h, w, c, nboard, 9.0, gen);
-    });
+    vector<vector<int> > board = original_board;
+    vector<int> h = split_to_chunks(H, H / 30 + 1);
+    vector<int> w = split_to_chunks(W, W / 30 + 1);
+    vector<array<int, 4> > rects;
+    int k = (h.size() - 1) * (w.size() - 1);
+    int cy = (h.size() - 1) / 2;
+    int cx = (w.size() - 1) / 2;
+    REP (y, h.size() - 1) {
+        vector<array<int, 4> > row_rects;
+        REP (x, w.size() - 1) {
+            if (y == cy and x == cx) continue;
+            cerr << "[" << h[y] << ", " << h[y + 1] << ") * [" << w[x] << ", " << w[x + 1] << ")" << endl;
+            int ly = 0, lx = 0;
+            if (cx < x) {
+                lx = w[cx + 1];
+            } else if (cy < y) {
+                ly = h[cy + 1];
+            }
+            vector<array<int, 4> > delta =
+                with_crop(H, W, C, board, ly, lx, h[y + 1], w[x + 1], [&](int H, int W, int C, vector<vector<int> > const & board) {
+                    return with_compress(H, W, C, board, [&](int H, int W, int C, vector<vector<int> > const & board) {
+                        return with_landscape(H, W, C, board, [&](int H, int W, int C, vector<vector<int> > const & board) {
+                            return solve_sa_greedy(H, W, C, board, rdtsc() + 5.0 / (k - 1), gen);
+                        });
+                    });
+                });
+            apply_rects(board, ALL(delta));
+            copy(ALL(delta), back_inserter(rects));
+        }
+    }
+    vector<array<int, 4> > delta =
+        with_compress(H, W, C, board, [&](int H, int W, int C, vector<vector<int> > const & board) {
+            return with_landscape(H, W, C, board, [&](int H, int W, int C, vector<vector<int> > const & board) {  // use landscape mode to make linked lists more efficient
+                return solve_sa_greedy(H, W, C, board, clock_begin + 9.0, gen);
+            });
+        });
+    apply_rects(board, ALL(delta));
+    copy(ALL(delta), back_inserter(rects));
+    return rects;
 }
 
 class SameColorPairs {
