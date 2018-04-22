@@ -31,4 +31,5 @@ score.tsv: a.out tester.jar
 visualizer.gif: a.out tester.jar
 	# seed = 459 is a hard one
 	java -jar tester.jar -exec ./a.out -delay 0 -size 10 -seed 459 -gif $@ -close
-	gifsicle --batch visualizer.gif -O3 --loopcount=forever --delay=1 '#1-' --delay=400 '#-1'
+	# make 5x faster
+	gifsicle --batch $@ -O3 --loopcount=forever --delay=1 $$(seq -f '#%g' 0 5 $$(gifsicle --info $@ | awk 'NR == 1 { print $$3 }')) --delay=400 '#-1'
