@@ -217,7 +217,14 @@ public class SameColorPairsVis {
 
                 if (vis) {
                     draw();
+                    if (gif != null && cacheBoard != null) {
+                        gif.set(cacheBoard.getSubimage(0, 0, W*SZ, H*SZ));
+                        gif.next();
+                    }
                 }
+            }
+            if (gif != null) {
+                gif.close();
             }
         }
 
@@ -232,7 +239,11 @@ public class SameColorPairsVis {
             }
             // don't convert manual removals to return value, as they are already simulated
         }
-        
+
+        if (vis && close) {
+            jf.dispose();
+        }
+
         return getScore();
       }
       catch (Exception e) { 
@@ -245,7 +256,8 @@ public class SameColorPairsVis {
     JFrame jf;
     Vis v;
     static String exec;
-    static boolean vis, manual, debug;
+    static boolean vis, manual, debug, close;
+    static GifWriter gif;
     static Process proc;
     static int del;
     InputStream is;
@@ -489,6 +501,7 @@ public class SameColorPairsVis {
         manual = false;
         del = 100;
         SZ = 20;
+        close = false;
         for (int i = 0; i<args.length; i++)
         {   if (args[i].equals("-seed"))
                 seed = args[++i];
@@ -504,6 +517,10 @@ public class SameColorPairsVis {
                 SZ = Integer.parseInt(args[++i]);
             if (args[i].equals("-debug"))
                 debug = true;
+            if (args[i].equals("-gif"))
+                gif = new GifWriter(args[++i]);
+            if (args[i].equals("-close"))
+                close = true;
         }
         if (seed.equals("1"))
             SZ = 30;
