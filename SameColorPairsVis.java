@@ -218,7 +218,7 @@ public class SameColorPairsVis {
                 if (vis) {
                     draw();
                     if (gif != null && cacheBoard != null) {
-                        gif.set(cacheBoard.getSubimage(0, 0, W*SZ, H*SZ));
+                        gif.set(cacheBoard.getSubimage(0, 0, W*SZ+1, H*SZ+1));
                         gif.next();
                     }
                 }
