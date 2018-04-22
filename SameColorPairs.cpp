@@ -391,35 +391,39 @@ vector<array<int, 4> > solve(int H, int W, int C, vector<vector<int> > const & o
     random_device device;
     xor_shift_128 gen(device());
     vector<vector<int> > board = original_board;
+
+    // split the board to blocks
     vector<int> h = split_to_chunks(H, H / 30 + 1);
     vector<int> w = split_to_chunks(W, W / 30 + 1);
+    int hk = h.size() - 1;
+    int wk = w.size() - 1;
+    int k = hk * wk;
+
+    // solve each black
+    vector<tuple<int, int, int> > order;
+    REP (y, hk) REP (x, wk) {
+        order.emplace_back(y + x, y, x);
+    }
+    order.pop_back();
+    sort(ALL(order));
     vector<array<int, 4> > rects;
-    int k = (h.size() - 1) * (w.size() - 1);
-    int cy = (h.size() - 1) / 2;
-    int cx = (w.size() - 1) / 2;
-    REP (y, h.size() - 1) {
-        vector<array<int, 4> > row_rects;
-        REP (x, w.size() - 1) {
-            if (y == cy and x == cx) continue;
-            cerr << "[" << h[y] << ", " << h[y + 1] << ") * [" << w[x] << ", " << w[x + 1] << ")" << endl;
-            int ly = 0, lx = 0;
-            if (cx < x) {
-                lx = w[cx + 1];
-            } else if (cy < y) {
-                ly = h[cy + 1];
-            }
-            vector<array<int, 4> > delta =
-                with_crop(H, W, C, board, ly, lx, h[y + 1], w[x + 1], [&](int H, int W, int C, vector<vector<int> > const & board) {
-                    return with_compress(H, W, C, board, [&](int H, int W, int C, vector<vector<int> > const & board) {
-                        return with_landscape(H, W, C, board, [&](int H, int W, int C, vector<vector<int> > const & board) {
-                            return solve_sa_greedy(H, W, C, board, rdtsc() + 5.0 / (k - 1), gen);
-                        });
+    REP (i, k - 1) {
+        int y, x; tie(ignore, y, x) = order[i];
+        cerr << "[" << h[y] << ", " << h[y + 1] << ") * [" << w[x] << ", " << w[x + 1] << ")" << endl;
+        vector<array<int, 4> > delta =
+            with_crop(H, W, C, board, 0, 0, h[y + 1], w[x + 1], [&](int H, int W, int C, vector<vector<int> > const & board) {
+                return with_compress(H, W, C, board, [&](int H, int W, int C, vector<vector<int> > const & board) {
+                    return with_landscape(H, W, C, board, [&](int H, int W, int C, vector<vector<int> > const & board) {
+                        double clock_end = min(rdtsc() + min(1.0, 3 * 5.0 / (k - 1)), clock_begin + 5.0 * (i + 1) / (k - 1));
+                        return solve_sa_greedy(H, W, C, board, clock_end, gen);
                     });
                 });
-            apply_rects(board, ALL(delta));
-            copy(ALL(delta), back_inserter(rects));
-        }
+            });
+        apply_rects(board, ALL(delta));
+        copy(ALL(delta), back_inserter(rects));
     }
+
+    // solve the entire board
     vector<array<int, 4> > delta =
         with_compress(H, W, C, board, [&](int H, int W, int C, vector<vector<int> > const & board) {
             return with_landscape(H, W, C, board, [&](int H, int W, int C, vector<vector<int> > const & board) {  // use landscape mode to make linked lists more efficient
