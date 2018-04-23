@@ -252,7 +252,7 @@ vector<array<int, 4> > with_crop(int H, int W, int C, vector<vector<int> > const
 }
 
 template <class RandomEngine>
-vector<array<int, 4> > solve_greedy_once(int H, int W, int C, vector<vector<int> > board, RandomEngine & gen) {
+vector<array<int, 4> > solve_greedy_once(int H, int W, int C, vector<vector<int> > & board, RandomEngine & gen) {
     vector<vector<pair<int, int> > > color(C);
     REP (y, H) REP (x, W) {
         if (board[y][x] >= 0) {
@@ -287,12 +287,45 @@ next_color: ;
     return rects;
 }
 
+template <class InputIterator, class OutputIterator>
+void apply_rects_with_preceding_cells(vector<vector<int> > & board, vector<pair<int, int> > preciding, InputIterator first, InputIterator last, int skip_i, OutputIterator dest) {
+    auto check_use = [&](int y1, int x1, int y2, int x2) {
+        if (not is_valid_pair(board, make_pair(y1, x1), make_pair(y2, x2))) return false;
+        board[y1][x1] = -1;
+        board[y2][x2] = -1;
+        *(dest ++) = { y1, x1, y2, x2 };
+        return true;
+    };
+    for (; first != last; ++ first) {
+        if ((skip_i --) == 0) continue;
+        int y1 = (*first)[0];
+        int x1 = (*first)[1];
+        int y2 = (*first)[2];
+        int x2 = (*first)[3];
+        REP (i, preciding.size()) {
+            int y, x; tie(y, x) = preciding[i];
+            if (check_use(y, x, y1, x1)
+                    or check_use(y, x, y2, x2)) {
+                swap(preciding[i], preciding.back());
+                // preciding.pop_back();
+                int k = preciding.size();
+                preciding.resize(min(k - 1, max(3, k / 2)));
+                // preciding.clear();
+                goto next;
+            }
+        }
+        check_use(y1, x1, y2, x2);
+next: ;
+    }
+}
+
 template <class RandomEngine>
 vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> > const & original_board, double clock_end, RandomEngine & gen) {
     vector<array<int, 4> > result;
     vector<array<int, 4> > cur;
     vector<vector<int> > saved_board = original_board;
     int saved_size = 0;
+    vector<pair<int, int> > remaining;
 
     // values for partialy solved board
     int initial_remaining = 0;
@@ -320,13 +353,24 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
         double temperature = (1 - (t - clock_begin) / (clock_end - clock_begin));
 
         // prepare board and the prefix of nxt
-        vector<array<int, 4> > nxt = cur;
+        char type;
+        vector<array<int, 4> > nxt;
         vector<vector<int> > board;
         int modified_i = 0;
-        if (nxt.empty() or bernoulli_distribution(0.01 * temperature)(gen)) {
+        if (cur.empty() or bernoulli_distribution(0.01 * temperature)(gen)) {
+            type = 'A';
             board = original_board;
-            nxt.clear();
+        } else if (not remaining.empty() and bernoulli_distribution(0.5)(gen)) {
+            type = 'B';
+            board = original_board;
+            int k = nxt.size();
+            int limit = max(0, k - 500);
+            int i = uniform_int_distribution<int>(bernoulli_distribution(0.2)(gen) ? 0 : limit, k - 1)(gen);
+            shuffle(ALL(remaining), gen);
+            apply_rects_with_preceding_cells(board, remaining, ALL(cur), i, back_inserter(nxt));
         } else {
+            type = 'C';
+            nxt = cur;
             int k = nxt.size();
             int limit = max(0, k - 500);
             if (saved_size < limit) {
@@ -352,15 +396,29 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
 
         // update cur and result
         int size_delta = int(nxt.size()) - int(cur.size());
-        double prob = exp(0.2 * size_delta / temperature);
+        double prob = exp(0.3 * size_delta / temperature);
         if (cur.size() <= nxt.size() or bernoulli_distribution(prob)(gen)) {
             cur = nxt;
             if (modified_i < saved_size) {
                 saved_board = original_board;
                 saved_size = 0;
             }
+            remaining.clear();
+            if (H * W - initial_remaining - 2 * int(cur.size()) <= 100) {
+                REP (y, H) {
+                    for (int x = 0; x < W; ) {
+                        if (board[y][x] < 0) {
+                            x -= board[y][x];
+                        } else {
+                            remaining.emplace_back(y, x);
+                            ++ x;
+                        }
+                    }
+                }
+            }
             if (result.size() < cur.size()) {
                 result = nxt;
+                cerr << type << " : ";
                 cerr << "score = " << H * W - initial_remaining - 2 * int(result.size()) << " / " << H * W << endl;
                 if (int(result.size()) == optimal_size) {
                     ++ iteration;
