@@ -64,99 +64,6 @@ vector<T> const & vector_max_size(vector<T> const & a, vector<T> const & b) {
     return a.size() >= b.size() ? a : b;
 }
 
-array<int8_t, MAX_H * MAX_W> pack_board(int H, int W, vector<vector<int> > const & original_board) {
-    array<int8_t, MAX_H * MAX_W> board;
-    REP (y, H) REP (x, W) board[y * W + x] = original_board[y][x];
-    return board;
-}
-
-void update_compression(int H, int W, array<int8_t, MAX_H * MAX_W> & board) {
-    vector<int> stk;
-    REP (y, H) {
-        for (int x = 0; x < W; ) {
-            if (board[y * W + x] < 0) {
-                int nx = x - board[y * W + x];
-                if (nx < W and board[y * W + nx] < 0) {
-                    while (x < W and board[y * W + x] < 0) {
-                        stk.push_back(x);
-                        x -= board[y * W + x];
-                    }
-                    while (not stk.empty()) {
-                        int px = stk.back();
-                        stk.pop_back();
-                        board[y * W + px] = px - x;
-                    }
-                } else {
-                    x = nx;
-                }
-            } else {
-                ++ x;
-            }
-        }
-    }
-}
-
-bool is_valid_pair(int W, array<int8_t, MAX_H * MAX_W> & board, pair<int, int> const & p1, pair<int, int> const & p2) {
-    int y1, x1; tie(y1, x1) = p1;
-    int y2, x2; tie(y2, x2) = p2;
-    int c = board[y1 * W + x1];
-    if (y1 > y2) swap(y1, y2);
-    if (x1 > x2) swap(x1, x2);
-    REP3 (y, y1, y2 + 1) {
-        for (int x = x1; x < x2 + 1; ) {
-            if (board[y * W + x] < 0) {
-                x -= board[y * W + x];
-            } else if (board[y * W + x] == c) {
-                ++ x;
-            } else {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-template <class InputIterator>
-void apply_rects(vector<vector<int> > & board, InputIterator first, InputIterator last) {
-    for (; first != last; ++ first) {
-        int y1 = (*first)[0];
-        int x1 = (*first)[1];
-        int y2 = (*first)[2];
-        int x2 = (*first)[3];
-        board[y1][x1] = -1;
-        board[y2][x2] = -1;
-    }
-}
-
-template <class InputIterator>
-void apply_rects(int W, array<int8_t, MAX_H * MAX_W> & board, InputIterator first, InputIterator last) {
-    for (; first != last; ++ first) {
-        int y1 = (*first)[0];
-        int x1 = (*first)[1];
-        int y2 = (*first)[2];
-        int x2 = (*first)[3];
-        board[y1 * W + x1] = -1;
-        board[y2 * W + x2] = -1;
-    }
-}
-
-template <class InputIterator>
-InputIterator apply_unreliable_rects(int W, array<int8_t, MAX_H * MAX_W> & board, InputIterator first, InputIterator last) {
-    InputIterator it = first;
-    for (; first != last; ++ first) {
-        int y1 = (*first)[0];
-        int x1 = (*first)[1];
-        int y2 = (*first)[2];
-        int x2 = (*first)[3];
-        // assume all conditions except is_valid_pair()
-        if (not is_valid_pair(W, board, make_pair(y1, x1), make_pair(y2, x2))) continue;
-        board[y1 * W + x1] = -1;
-        board[y2 * W + x2] = -1;
-        *(it ++) = *first;
-    }
-    return it;
-}
-
 vector<array<int, 4> > with_compress(int H, int W, int C, vector<vector<int> > const & board, function<vector<array<int, 4> > (int, int, int, vector<vector<int> > const &)> cont) {
     // check empty rows and cols
     vector<bool> is_empty_row(H, true);
@@ -238,49 +145,98 @@ vector<array<int, 4> > with_crop(int H, int W, int C, vector<vector<int> > const
     return rects;
 }
 
-template <class RandomEngine>
-vector<array<int, 4> > solve_greedy_once(int H, int W, int C, array<int8_t, MAX_H * MAX_W> & board, RandomEngine & gen) {
-    vector<vector<pair<int, int> > > color(C);
+
+array<int8_t, MAX_H * MAX_W> pack_board(int H, int W, vector<vector<int> > const & original_board) {
+    array<int8_t, MAX_H * MAX_W> board;
+    REP (y, H) REP (x, W) board[y * W + x] = original_board[y][x];
+    return board;
+}
+
+void update_compression(int H, int W, array<int8_t, MAX_H * MAX_W> & board) {
+    vector<int> stk;
     REP (y, H) {
         for (int x = 0; x < W; ) {
             if (board[y * W + x] < 0) {
-                x -= board[y * W + x];
+                int nx = x - board[y * W + x];
+                if (nx < W and board[y * W + nx] < 0) {
+                    while (x < W and board[y * W + x] < 0) {
+                        stk.push_back(x);
+                        x -= board[y * W + x];
+                    }
+                    while (not stk.empty()) {
+                        int px = stk.back();
+                        stk.pop_back();
+                        board[y * W + px] = px - x;
+                    }
+                } else {
+                    x = nx;
+                }
             } else {
-                color[board[y * W + x]].emplace_back(y, x);
                 ++ x;
             }
         }
     }
-    REP (c, C) {
-        shuffle(ALL(color[c]), gen);
-    }
-    vector<array<int, 4> > rects;
-    vector<int> i_of(C);
-    for (int iteration = 0; ; ++ iteration) {
-        update_compression(H, W, board);
-        bool found = false;
-        REP (c, C) {
-            REP (count, color[c].size()) {
-                if (i_of[c] >= int(color[c].size())) i_of[c] = 0;
-                int i = i_of[c] ++;
-                REP (j, color[c].size()) if (i < j) {
-                    if (not is_valid_pair(W, board, color[c][i], color[c][j])) continue;
-                    found = true;
-                    int y1, x1; tie(y1, x1) = color[c][i];
-                    int y2, x2; tie(y2, x2) = color[c][j];
-                    rects.push_back((array<int, 4>) { y1, x1, y2, x2 });
-                    board[y1 * W + x1] = -1;
-                    board[y2 * W + x2] = -1;
-                    swap(color[c][j], color[c].back()); color[c].pop_back();  // drop j at first, since i < j
-                    swap(color[c][i], color[c].back()); color[c].pop_back();
-                    goto next_color;
-                }
+}
+
+bool is_valid_pair(int W, array<int8_t, MAX_H * MAX_W> const & board, pair<int, int> const & p1, pair<int, int> const & p2) {
+    int y1, x1; tie(y1, x1) = p1;
+    int y2, x2; tie(y2, x2) = p2;
+    int c = board[y1 * W + x1];
+    if (y1 > y2) swap(y1, y2);
+    if (x1 > x2) swap(x1, x2);
+    REP3 (y, y1, y2 + 1) {
+        for (int x = x1; x < x2 + 1; ) {
+            if (board[y * W + x] < 0) {
+                x -= board[y * W + x];
+            } else if (board[y * W + x] == c) {
+                ++ x;
+            } else {
+                return false;
             }
-next_color: ;
         }
-        if (not found) break;
     }
-    return rects;
+    return true;
+}
+
+template <class InputIterator>
+void apply_rects(vector<vector<int> > & board, InputIterator first, InputIterator last) {
+    for (; first != last; ++ first) {
+        int y1 = (*first)[0];
+        int x1 = (*first)[1];
+        int y2 = (*first)[2];
+        int x2 = (*first)[3];
+        board[y1][x1] = -1;
+        board[y2][x2] = -1;
+    }
+}
+
+template <class InputIterator>
+void apply_rects(int W, array<int8_t, MAX_H * MAX_W> & board, InputIterator first, InputIterator last) {
+    for (; first != last; ++ first) {
+        int y1 = (*first)[0];
+        int x1 = (*first)[1];
+        int y2 = (*first)[2];
+        int x2 = (*first)[3];
+        board[y1 * W + x1] = -1;
+        board[y2 * W + x2] = -1;
+    }
+}
+
+template <class InputIterator>
+InputIterator apply_unreliable_rects(int W, array<int8_t, MAX_H * MAX_W> & board, InputIterator first, InputIterator last) {
+    InputIterator it = first;
+    for (; first != last; ++ first) {
+        int y1 = (*first)[0];
+        int x1 = (*first)[1];
+        int y2 = (*first)[2];
+        int x2 = (*first)[3];
+        // assume all conditions except is_valid_pair()
+        if (not is_valid_pair(W, board, make_pair(y1, x1), make_pair(y2, x2))) continue;
+        board[y1 * W + x1] = -1;
+        board[y2 * W + x2] = -1;
+        *(it ++) = *first;
+    }
+    return it;
 }
 
 template <class InputIterator, class OutputIterator>
@@ -316,6 +272,54 @@ next: ;
 }
 
 template <class RandomEngine>
+vector<array<int, 4> > solve_greedy_once(int H, int W, int C, array<int8_t, MAX_H * MAX_W> & board, RandomEngine & gen) {
+    // prepare lists of living cells
+    vector<vector<pair<int, int> > > color(C);
+    REP (y, H) {
+        for (int x = 0; x < W; ) {
+            if (board[y * W + x] < 0) {
+                x -= board[y * W + x];
+            } else {
+                color[board[y * W + x]].emplace_back(y, x);
+                ++ x;
+            }
+        }
+    }
+    REP (c, C) {
+        shuffle(ALL(color[c]), gen);
+    }
+
+    // remove greedily
+    vector<array<int, 4> > rects;
+    vector<int> i_of(C);
+    for (int iteration = 0; ; ++ iteration) {
+        update_compression(H, W, board);
+        bool found = false;
+        REP (c, C) {
+            REP (count, color[c].size()) {
+                if (i_of[c] >= int(color[c].size())) i_of[c] = 0;
+                int i = i_of[c] ++;
+                REP (j, color[c].size()) if (i < j) {
+                    if (not is_valid_pair(W, board, color[c][i], color[c][j])) continue;
+                    found = true;
+                    int y1, x1; tie(y1, x1) = color[c][i];
+                    int y2, x2; tie(y2, x2) = color[c][j];
+                    rects.push_back((array<int, 4>) { y1, x1, y2, x2 });
+                    board[y1 * W + x1] = -1;
+                    board[y2 * W + x2] = -1;
+                    swap(color[c][j], color[c].back()); color[c].pop_back();  // drop j at first, since i < j
+                    swap(color[c][i], color[c].back()); color[c].pop_back();
+                    goto next_color;
+                }
+            }
+next_color: ;
+        }
+        if (not found) break;
+    }
+    return rects;
+}
+
+template <class RandomEngine>
 vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> > const & original_original_board, double clock_end, RandomEngine & gen) {
     array<int8_t, MAX_H * MAX_W> original_board = pack_board(H, W, original_original_board);
     update_compression(H, W, original_board);
@@ -326,9 +330,9 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
     vector<pair<int, int> > remaining;
 
     // values for partialy solved board
-    int initial_remaining = 0;
+    int initial_removed = 0;
     REP (y, H) REP (x, W) {
-        initial_remaining += (original_board[y * W + x] < 0);
+        initial_removed += (original_board[y * W + x] < 0);
     }
     int optimal_size = 0; {  // since the numbers of cells sometimes are odd
         vector<bool> dangling(C);
@@ -355,10 +359,14 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
         char type;
         vector<array<int, 4> > nxt;
         int modified_i = 0;
+
         if (cur.empty() or bernoulli_distribution(0.01 * temperature)(gen)) {
+            // forget everything and restart from zero
             type = 'A';
             memcpy(board.data(), original_board.data(), H * W);
+
         } else if (not remaining.empty() and bernoulli_distribution(0.5)(gen)) {
+            // make neighborhood removing last remaining cells
             type = 'B';
             memcpy(board.data(), original_board.data(), H * W);
             int k = nxt.size();
@@ -366,7 +374,9 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
             int i = uniform_int_distribution<int>(bernoulli_distribution(0.2)(gen) ? 0 : limit, k - 1)(gen);
             shuffle(ALL(remaining), gen);
             apply_rects_with_preceding_cells(W, board, remaining, ALL(cur), i, back_inserter(nxt));
+
         } else {
+            // make neighborhood only removing a pair
             type = 'C';
             nxt = cur;
             int k = nxt.size();
@@ -402,7 +412,7 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
                 saved_size = 0;
             }
             remaining.clear();
-            if (H * W - initial_remaining - 2 * int(cur.size()) <= 100) {
+            if (H * W - initial_removed - 2 * int(cur.size()) <= 100) {
                 REP (y, H) {
                     for (int x = 0; x < W; ) {
                         if (board[y * W + x] < 0) {
@@ -418,7 +428,7 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
                 result = nxt;
 #ifdef LOCAL
                 cerr << type << " : ";
-                cerr << "score = " << H * W - initial_remaining - 2 * int(result.size()) << " / " << H * W << endl;
+                cerr << "score = " << H * W - initial_removed - 2 * int(result.size()) << " / " << H * W << endl;
 #endif
                 if (int(result.size()) == optimal_size) {
                     ++ iteration;
