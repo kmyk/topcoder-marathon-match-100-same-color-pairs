@@ -1064,3 +1064,24 @@ forumで確認取るべきな気もするがどうしよう。どうであれ実
 | kimiyuki  | 850495.05   | 3      | 04.22.2018 13:19:05    | C++       | 23            | 9           | 1745             | 2022.82          | 277.82       |
 
 ![3668ad51342bb205d79f7edccc2828ddcc8c9560](https://user-images.githubusercontent.com/2203128/39097975-c7d353ba-469e-11e8-9cad-3a1c0a5ac8fc.gif)
+
+# 2/23
+
+見つけた: [Marathon Match 100 with Prizes & T-Shirts!](http://success.topcoder.com/the-topcoder-blog/marathon-match-100-with-prizes-t-shirts)。
+Tシャツだけだと思ってたのに賞金が出るらしいので引けなくなった。
+順位が良い回に賞金チャンスまで降ってきたの運良さすぎだしなんとか落とさず回収したい。
+TopCoderに最近登録してMMに初出場の人の中で1位なら全体での2位と同額の賞金もあるらしい。
+これ今からでも部の今年の新入生のB1のプロにやらせたら自明に賞金取ってくれそうだなあと思ったのだけど、よく見たら登録日時の条件が 23:59 UTC-4 April 10, 2018 までの閉区間のようで締め切り過ぎてた、なぜ。
+
+| Handle      | Score       | Rank  | Last Submission Time  | Language  | Example Tests | Submissions | Current Rating  | Predicted Rating  | Rating Delta |
+|-------------|-------------|-------|-----------------------|-----------|---------------|-------------|-----------------|-------------------|--------------|
+| eldidou     | 845929.20   | 1     | 04.22.2018 09:42:47   | C++       | 3             | 4           | 2560            | 2674.05           | 114.05       |
+| machy       | 844800.88   | 2     | 04.22.2018 00:41:02   | C++       | 1             | 5           | 1624            | 1839.22           | 215.22       |
+| sdya        | 843495.58   | 3     | 04.22.2018 22:44:42   | C++       | 15            | 8           | 2163            | 2288.51           | 125.51       |
+| kimiyuki    | 843207.96   | 4     | 04.22.2018 13:19:05   | C++       | 23            | 9           | 1745            | 1993.39           | 248.39       |
+| wleite      | 842433.63   | 5     | 04.22.2018 23:39:39   | Java      | 12            | 10          | 2708            | 2716.00           | 8.00         |
+
+下がっていた。
+[sdya](https://www.topcoder.com/members/sdya/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんが粘る。提出の雰囲気を見るに私と同様に細かな改善を繰り返していそう。
+[wleite](https://www.topcoder.com/members/wleite/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんはいつも立ち上がり遅いけどなぜなのだろう。焼き鈍しなのかな？
+最終日には7位ぐらいに落ちてて賞金圏外で終了しそうな予感がある。厳しい。
