@@ -274,47 +274,72 @@ next: ;
 template <class RandomEngine>
 vector<array<int, 4> > solve_greedy_once(int H, int W, int C, array<int8_t, MAX_H * MAX_W> & board, RandomEngine & gen) {
     // prepare lists of living cells
-    vector<vector<pair<int, int> > > color(C);
+    vector<pair<int, int> > color(C);
     REP (y, H) {
         for (int x = 0; x < W; ) {
             if (board[y * W + x] < 0) {
                 x -= board[y * W + x];
             } else {
-                color[board[y * W + x]].emplace_back(y, x);
+                color.emplace_back(y, x);
                 ++ x;
             }
         }
     }
-    REP (c, C) {
-        shuffle(ALL(color[c]), gen);
-    }
 
     // remove greedily
     vector<array<int, 4> > rects;
-    vector<int> i_of(C);
+    vector<array<int, 4> > removable;
     for (int iteration = 0; ; ++ iteration) {
         update_compression(H, W, board);
-        bool found = false;
-        REP (c, C) {
-            REP (count, color[c].size()) {
-                if (i_of[c] >= int(color[c].size())) i_of[c] = 0;
-                int i = i_of[c] ++;
-                REP (j, color[c].size()) if (i < j) {
-                    if (not is_valid_pair(W, board, color[c][i], color[c][j])) continue;
-                    found = true;
-                    int y1, x1; tie(y1, x1) = color[c][i];
-                    int y2, x2; tie(y2, x2) = color[c][j];
-                    rects.push_back((array<int, 4>) { y1, x1, y2, x2 });
-                    board[y1 * W + x1] = -1;
-                    board[y2 * W + x2] = -1;
-                    swap(color[c][j], color[c].back()); color[c].pop_back();  // drop j at first, since i < j
-                    swap(color[c][i], color[c].back()); color[c].pop_back();
-                    goto next_color;
-                }
+        removable.clear();
+        for (int i = 0; i < int(color.size()); ++ i) {
+            int y1, x1; tie(y1, x1) = color[i];
+            int c = board[y1 * W + x1];
+            if (c < 0) {
+                swap(color[i], color.back());
+                color.pop_back();
+                -- i;
+                continue;
             }
-next_color: ;
+            int min_x2 = W;
+            auto func = [&](int y2) {
+                int x2 = x1 + (y2 == y1);
+                while (x2 < W and board[y2 * W + x2] < 0) {
+                    x2 -= board[y2 * W + x2];
+                }
+                if (x2 == W) return;
+                if (board[y2 * W + x2] == c) {
+                    if (x2 < min_x2) {
+                        removable.push_back((array<int, 4>) { y1, x1, y2, x2 });
+                    }
+                    chmin(min_x2, x2 + 1);
+                } else {
+                    chmin(min_x2, x2);
+                }
+            };
+            REP3 (y2, y1, H) {
+                func(y2);
+                if (min_x2 == x1) break;
+            }
+            min_x2 = W;
+            REP_R (y2, y1 + 1) {
+                func(y2);
+                if (min_x2 == x1) break;
+            }
         }
-        if (not found) break;
+        if (removable.empty()) break;
+        shuffle(ALL(removable), gen);
+        for (auto const & rect : removable) {
+            int y1 = rect[0];
+            int x1 = rect[1];
+            int y2 = rect[2];
+            int x2 = rect[3];
+            if (board[y1 * W + x1] < 0) continue;
+            if (board[y2 * W + x2] < 0) continue;
+            board[y1 * W + x1] = -1;
+            board[y2 * W + x2] = -1;
+            rects.push_back(rect);
+        }
     }
     return rects;
 }
