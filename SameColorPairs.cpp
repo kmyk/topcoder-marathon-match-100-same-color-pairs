@@ -480,6 +480,13 @@ vector<int> split_to_chunks(int w, int k) {
 }
 
 vector<array<int, 4> > solve(int H, int W, int C, vector<vector<int> > const & original_board) {
+    // assume H <= W
+    if (H > W) {
+        return with_transpose(H, W, C, original_board, [&](int H, int W, int C, vector<vector<int> > board) {
+            return solve(H, W, C, board);
+        });
+    }
+
     double clock_begin = rdtsc();
     random_device device;
     xor_shift_128 gen(device());
@@ -492,19 +499,63 @@ vector<array<int, 4> > solve(int H, int W, int C, vector<vector<int> > const & o
     int wk = w.size() - 1;
     int k = hk * wk;
 
-    // solve each black
-    vector<tuple<int, int, int> > order;
+    // define the ordering
+    vector<tuple<int, int, int, int> > order;
+    assert (hk <= hk);  // since H <= W
     REP (y, hk) REP (x, wk) {
-        order.emplace_back(y + x, y, x);
+        int a = y;
+        int b = (y % 2 == 0 ? - x : x);
+        if (hk == 1) {
+            // nop
+        } else if (hk == 2) {
+            if (y == 0 and x == wk - 1) a = 100;
+        } else if (hk == 3) {
+            // nop
+        } else if (hk == 4) {
+            assert (wk == 4);
+            if (x < wk - 1) {
+                // nop
+            } else {
+                a = 100;
+                b = - y;
+            }
+        } else {
+            assert (false);
+        }
+        order.emplace_back(a, b, y, x);
     }
-    order.pop_back();
     sort(ALL(order));
+    order.pop_back();
+
+    // solve each block
     vector<array<int, 4> > rects;
+    vector<vector<bool> > used(hk, vector<bool>(wk));
     REP (i, k - 1) {
-        int y, x; tie(ignore, y, x) = order[i];
+        int y, x; tie(ignore, ignore, y, x) = order[i];
         cerr << "[" << h[y] << ", " << h[y + 1] << ") * [" << w[x] << ", " << w[x + 1] << ")" << endl;
+
+        // exntend the area
+        used[y][x] = true;
+        int ly = y, ry = y + 1;
+        int lx = x, rx = x + 1;
+        while (lx - 1 >=  0 and used[y][lx - 1]) -- lx;
+        while (rx     <  wk and used[y][rx]) ++ rx;
+        while (ly - 1 >=  0) {
+            bool valid = true;
+            REP3 (x, lx, rx) if (not used[ly - 1][x]) valid = false;
+            if (not valid) break;
+            -- ly;
+        }
+        while (ry < hk) {
+            bool valid = true;
+            REP3 (x, lx, rx) if (not used[ry][x]) valid = false;
+            if (not valid) break;
+            ++ ry;
+        }
+
+        // run greedy
         vector<array<int, 4> > delta =
-            with_crop(H, W, C, board, 0, 0, h[y + 1], w[x + 1], [&](int H, int W, int C, vector<vector<int> > const & board) {
+            with_crop(H, W, C, board, h[ly], w[lx], h[ry], w[rx], [&](int H, int W, int C, vector<vector<int> > const & board) {
                 return with_compress(H, W, C, board, [&](int H, int W, int C, vector<vector<int> > const & board) {
                     return with_landscape(H, W, C, board, [&](int H, int W, int C, vector<vector<int> > const & board) {
                         double clock_end = min(rdtsc() + min(1.0, 3 * 5.0 / (k - 1)), clock_begin + 5.0 * (i + 1) / (k - 1));
@@ -576,6 +627,7 @@ public:
         }
         double t = rdtsc() - clock_begin;
         cerr << "time = " << t << endl;
+        cerr << "!\t" << H << "\t" << W << "\t" << C << "\t" << (H * W - 2 * int(answer.size())) << "\t" << t << endl;
         return answer;
     }
 };
