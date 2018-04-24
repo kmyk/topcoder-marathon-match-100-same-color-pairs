@@ -1,3 +1,4 @@
+#pragma GCC target "sse4.2"
 #include <bits/stdc++.h>
 #define REP(i, n) for (int i = 0; (i) < int(n); ++ (i))
 #define REP3(i, m, n) for (int i = (m); (i) < int(n); ++ (i))
@@ -377,7 +378,7 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
     array<int8_t, MAX_H * MAX_W> board;
     for (; ; ++ iteration) {
         double t = rdtsc();
-        if (t + 2 * max_delta + 0.2 > clock_end) break;
+        if (t + max(2 * max_delta, 0.2) > clock_end) break;
         double temperature = (1 - (t - clock_begin) / (clock_end - clock_begin));
 
         // prepare board and the prefix of nxt
@@ -566,12 +567,11 @@ vector<array<int, 4> > solve(int H, int W, int C, vector<vector<int> > const & o
         apply_rects(board, ALL(delta));
         copy(ALL(delta), back_inserter(rects));
     }
-
     // solve the entire board
     vector<array<int, 4> > delta =
         with_compress(H, W, C, board, [&](int H, int W, int C, vector<vector<int> > const & board) {
             return with_landscape(H, W, C, board, [&](int H, int W, int C, vector<vector<int> > const & board) {  // use landscape mode to make linked lists more efficient
-                return solve_sa_greedy(H, W, C, board, clock_begin + 9.0, gen);
+                return solve_sa_greedy(H, W, C, board, clock_begin + 9.5, gen);
             });
         });
     apply_rects(board, ALL(delta));
