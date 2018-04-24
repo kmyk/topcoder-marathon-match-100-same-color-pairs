@@ -494,11 +494,14 @@ vector<array<int, 4> > solve(int H, int W, int C, vector<vector<int> > const & o
     vector<vector<int> > board = original_board;
 
     // split the board to blocks
-    vector<int> h = split_to_chunks(H, H / 30 + 1);
-    vector<int> w = split_to_chunks(W, W / 30 + 1);
-    int hk = h.size() - 1;
-    int wk = w.size() - 1;
+    int hk = H / 30 + 1;
+    int wk = W / 30 + 1;
+    while (hk * wk >= 2 and (H / hk) * (W / wk) <= 400) {
+        -- (hk >= wk ? hk : wk);  // not to make too small blocks
+    }
     int k = hk * wk;
+    vector<int> h = split_to_chunks(H, hk);
+    vector<int> w = split_to_chunks(W, wk);
 
     // define the ordering
     vector<tuple<int, int, int, int> > order;
