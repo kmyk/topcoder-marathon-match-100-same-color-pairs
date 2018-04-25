@@ -241,7 +241,7 @@ InputIterator apply_unreliable_rects(int W, array<int8_t, MAX_H * MAX_W> & board
 }
 
 template <class InputIterator, class OutputIterator>
-void apply_rects_with_preceding_cells(int W, array<int8_t, MAX_H * MAX_W> & board, vector<pair<int, int> > preciding, InputIterator first, InputIterator last, int skip_i, OutputIterator dest) {
+void apply_rects_with_preceding_cells(int W, array<int8_t, MAX_H * MAX_W> & board, vector<pair<int, int> > & preciding, InputIterator first, InputIterator last, int skip_i, OutputIterator dest) {
     auto check_use = [&](int y1, int x1, int y2, int x2) {
         if (not is_valid_pair(W, board, make_pair(y1, x1), make_pair(y2, x2))) return false;
         board[y1 * W + x1] = -1;
@@ -255,15 +255,10 @@ void apply_rects_with_preceding_cells(int W, array<int8_t, MAX_H * MAX_W> & boar
         int x1 = (*first)[1];
         int y2 = (*first)[2];
         int x2 = (*first)[3];
-        REP (i, preciding.size()) {
-            int y, x; tie(y, x) = preciding[i];
-            if (check_use(y, x, y1, x1)
-                    or check_use(y, x, y2, x2)) {
-                swap(preciding[i], preciding.back());
-                // preciding.pop_back();
-                int k = preciding.size();
-                preciding.resize(min(k - 1, max(3, k / 2)));
-                // preciding.clear();
+        for (auto const & p : preciding) {
+            int y, x; tie(y, x) = p;
+            if (check_use(y, x, y1, x1) or check_use(y, x, y2, x2)) {
+                preciding.clear();
                 goto next;
             }
         }
@@ -352,6 +347,7 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
     vector<array<int, 4> > result;
     vector<array<int, 4> > cur;
     vector<pair<int, int> > remaining;
+    array<uint8_t, MAX_H * MAX_W> remaining_count = {};
 
     // values for partialy solved board
     int initial_removed = 0;
@@ -394,8 +390,18 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
             memcpy(board.data(), original_board.data(), H * W);
             int k = cur.size();
             int i = uniform_int_distribution<int>(0, k - 1)(gen);
-            shuffle(ALL(remaining), gen);
-            apply_rects_with_preceding_cells(W, board, remaining, ALL(cur), i, back_inserter(nxt));
+            vector<pair<int, int> > order(remaining.size());
+            REP (j, remaining.size()) {
+                int y, x; tie(y, x) = remaining[j];
+                order[j] = make_pair(remaining_count[y * W + x] + uniform_int_distribution<int>(0, 10)(gen), j);
+            }
+            sort(order.rbegin(), order.rend());
+            int l = uniform_int_distribution<int>(1, remaining.size())(gen);
+            vector<pair<int, int> > preciding(l);
+            REP (j, l) {
+                preciding[j] = remaining[order[j].second];
+            }
+            apply_rects_with_preceding_cells(W, board, preciding, ALL(cur), i, back_inserter(nxt));
 
         } else {
             // make neighborhood only removing a pair
@@ -413,13 +419,24 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
         vector<array<int, 4> > delta = solve_greedy_once(H, W, C, board, gen);
         copy(ALL(delta), back_inserter(nxt));
 
+        // update the weights of cells
+        int remaining_size = H * W - initial_removed - 2 * int(cur.size());
+        REP (y, H) REP (x, W) {
+            uint8_t & it = remaining_count[y * W + x];
+            if (board[y * W + x] >= 0) it += remaining_size == 4 ? 12 : 5;
+            if (it == 0) continue;
+            it = max(0, min(100, it - 3));
+        }
+
         // update cur and result
         int size_delta = int(nxt.size()) - int(cur.size());
         double prob = exp(0.3 * size_delta / temperature);
         if (cur.size() <= nxt.size() or bernoulli_distribution(prob)(gen)) {
             cur = nxt;
+
+            // collect remaining cells 
             remaining.clear();
-            if (H * W - initial_removed - 2 * int(cur.size()) <= 100) {
+            if (remaining_size <= 100) {
                 REP (y, H) {
                     for (int x = 0; x < W; ) {
                         if (board[y * W + x] < 0) {
@@ -431,6 +448,8 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
                     }
                 }
             }
+
+            // update result
             if (result.size() < cur.size()) {
                 result = nxt;
 #ifdef LOCAL
