@@ -1,26 +1,12 @@
-# TopCoder Marathon Match 100: SameColorPairs
+## 日記
 
-<https://community.topcoder.com/longcontest/?module=ViewProblemStatement&rd=17143&pm=14889>
-
-## algorithm
-
-The main algorithm is: split the board into chunks and do simulated annealing chunkwise.
-
-Doing simulated annealing is the typical one.
-Splitting boards is effective since cases with moderately small areas are easy.
-
-![a40dfcc54f8f2cdd9155d0fc5ceb02315e76d1b2.1](https://user-images.githubusercontent.com/2203128/39192521-4eabe0ac-4814-11e8-83b9-be3d79b93b13.gif)
-
-![4165](https://github.com/kmyk/topcoder-marathon-match-100-same-color-pairs/raw/master/image/4165.gif)
-
-## 問題概要
+### 問題概要
 
 H * Wの盤面があり各マスはC種の色のうちどれかで塗られている。
 同じ色のマスの対で、それらを含む軸平行長方形内に他の色が存在しないようなものがあれば、それらのマスを無色にできる。
 適当な操作列を取り無色のマスの数をできる限り大きくせよ。
 (10 ≦ H, W ≦ 100, 2 ≦ C ≦ 6)
 
-## 日記
 
 ### 4/19
 
