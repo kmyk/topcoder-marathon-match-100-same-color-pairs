@@ -373,7 +373,7 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
     for (; ; ++ iteration) {
         double t = rdtsc();
         if (t + max(2 * max_delta, 0.2) > clock_end) break;
-        double temperature = (1 - (t - clock_begin) / (clock_end - clock_begin));
+        double temperature = 1 - 0.8 * (t - clock_begin) / (clock_end - clock_begin);
 
         // prepare board and the prefix of nxt
         char type;
