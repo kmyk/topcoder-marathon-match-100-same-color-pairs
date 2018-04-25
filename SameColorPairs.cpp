@@ -351,8 +351,6 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
     update_compression(H, W, original_board);
     vector<array<int, 4> > result;
     vector<array<int, 4> > cur;
-    array<int8_t, MAX_H * MAX_W> saved_board = original_board;
-    int saved_size = 0;
     vector<pair<int, int> > remaining;
 
     // values for partialy solved board
@@ -384,44 +382,31 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
         // prepare board and the prefix of nxt
         char type;
         vector<array<int, 4> > nxt;
-        int modified_i = 0;
 
         if (cur.empty() or bernoulli_distribution(0.01 * temperature)(gen)) {
             // forget everything and restart from zero
             type = 'A';
             memcpy(board.data(), original_board.data(), H * W);
 
-        } else if (not remaining.empty() and bernoulli_distribution(0.5)(gen)) {
+        } else if (not remaining.empty() and remaining.size() < 100 and bernoulli_distribution(0.5)(gen)) {
             // make neighborhood removing last remaining cells
             type = 'B';
             memcpy(board.data(), original_board.data(), H * W);
-            int k = nxt.size();
-            int limit = max(0, k - 500);
-            int i = uniform_int_distribution<int>(bernoulli_distribution(0.2)(gen) ? 0 : limit, k - 1)(gen);
+            int k = cur.size();
+            int i = uniform_int_distribution<int>(0, k - 1)(gen);
             shuffle(ALL(remaining), gen);
             apply_rects_with_preceding_cells(W, board, remaining, ALL(cur), i, back_inserter(nxt));
 
         } else {
             // make neighborhood only removing a pair
             type = 'C';
+            int k = cur.size();
+            int i = uniform_int_distribution<int>(0, k - 1)(gen);
             nxt = cur;
-            int k = nxt.size();
-            int limit = max(0, k - 500);
-            if (saved_size < limit) {
-                apply_rects(W, saved_board, nxt.begin() + saved_size, nxt.begin() + limit);
-                update_compression(H, W, saved_board);
-                saved_size = limit;
-            }
-            modified_i = uniform_int_distribution<int>(bernoulli_distribution(0.2)(gen) ? 0 : limit, k - 1)(gen);
-            swap(nxt[modified_i], nxt.back());
-            if (modified_i >= saved_size) {
-                memcpy(board.data(), saved_board.data(), H * W);
-                apply_rects(W, board, nxt.begin() + saved_size, nxt.begin() + modified_i);
-            } else {
-                board = original_board;
-                apply_rects(W, board, nxt.begin(), nxt.begin() + modified_i);
-            }
-            nxt.erase(apply_unreliable_rects(W, board, nxt.begin() + modified_i, nxt.end()), nxt.end());
+            swap(nxt[i], nxt.back());
+            memcpy(board.data(), original_board.data(), H * W);
+            apply_rects(W, board, nxt.begin(), nxt.begin() + i);
+            nxt.erase(apply_unreliable_rects(W, board, nxt.begin() + i, nxt.end()), nxt.end());
         }
 
         // run greedy
@@ -433,10 +418,6 @@ vector<array<int, 4> > solve_sa_greedy(int H, int W, int C, vector<vector<int> >
         double prob = exp(0.3 * size_delta / temperature);
         if (cur.size() <= nxt.size() or bernoulli_distribution(prob)(gen)) {
             cur = nxt;
-            if (modified_i < saved_size) {
-                memcpy(saved_board.data(), original_board.data(), H * W);
-                saved_size = 0;
-            }
             remaining.clear();
             if (H * W - initial_removed - 2 * int(cur.size()) <= 100) {
                 REP (y, H) {
