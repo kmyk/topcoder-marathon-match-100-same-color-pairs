@@ -37,10 +37,10 @@ gif出力機能はなぜ配られなかったのか。上位者の出力を眺�
 | mmammel         | 742058.82       | 6       | 04.18.2018 23:35:37       | C++       | 1               | 1               | 1292            | 1375.85            | 83.85        |
 | accel           | 625882.35       | 7       | 04.19.2018 02:31:05       | C++       | 3               | 2               | 1220            | 1461.28            | 241.28       |
 
-![d80706d423b71e45d9acedc05f434216559d5580](https://user-images.githubusercontent.com/2203128/39096787-58f2cb2e-468f-11e8-98fb-2db9f2123fe9.gif)
+![d80706d423b71e45d9acedc05f434216559d5580](https://github.com/kmyk/topcoder-marathon-match-100-same-color-pairs/raw/master/image/d80706d423b71e45d9acedc05f434216559d5580.gif)
 
 時間計測がなんだか変でExample Testsが増えた。まだちゃんとできてないが提出 `cb164952586698062c717fd6584600c2585b9897`。
-[Pag2](https://www.topcoder.com/members/Pag2/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんが1位に出てるが青色なので私にも辿り着ける解法だろう。
+[Pag2](https://www.topcoder.com/members/Pag2/) さんが1位に出てるが青色なので私にも辿り着ける解法だろう。
 
 | Handle        | Score        |  Rank   |  Last Submission Time | Language |  Example Tests | Submissions   | Current Rating |  Predicted Rating |  Rating Delta |
 |---------------|--------------|---------|-----------------------|----------|----------------|---------------|----------------|-------------------|---------------|
@@ -51,7 +51,7 @@ gif出力機能はなぜ配られなかったのか。上位者の出力を眺�
 | iehn          | 789565.22    |  5      |  04.18.2018 22:19:55  | C++      |  1             | 1             | 1650           |  1712.70          |  62.70        |
 | Rustyoldman   | 769130.43    |  6      |  04.19.2018 02:40:42  | C++      |  1             | 2             | 1609           |  1643.27          |  34.27        |
 
-![cb164952586698062c717fd6584600c2585b9897](https://user-images.githubusercontent.com/2203128/39096789-5b29041c-468f-11e8-8359-3605f8121458.gif)
+![cb164952586698062c717fd6584600c2585b9897](https://github.com/kmyk/topcoder-marathon-match-100-same-color-pairs/raw/master/image/cb164952586698062c717fd6584600c2585b9897.gif)
 
 次にやるべきは適当なところまで進めて残りを乱択する高速化に思える。
 下から貪欲に取って座標圧縮とかをするとよさそう。
@@ -74,13 +74,13 @@ gif出力機能はなぜ配られなかったのか。上位者の出力を眺�
 | kimiyuki     | 870254.24  | 9    | 04.19.2018 05:04:49     | C++        | 9                 | 2                 | 1745              | 1830.07           | 85.07        |
 | MaxBuzz      | 865254.24  | 10   | 04.19.2018 11:25:18     | Java       | 3                 | 2                 | 1393              | 1523.64           | 130.64       |
 
-rejudgeがあった。[ceni1055](https://www.topcoder.com/members/ceni1055/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さん [Pag2](https://www.topcoder.com/members/Pag2/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんが同点1位だったがtesterのバグを突いてたようで共に0点に落ちていた。
+rejudgeがあった。[ceni1055](https://www.topcoder.com/members/ceni1055/) さん [Pag2](https://www.topcoder.com/members/Pag2/) さんが同点1位だったがtesterのバグを突いてたようで共に0点に落ちていた。
 
 `33ec0a8eb9474d17d67cb7ec7851e337ded45d0f` を提出。5位。
 外側のものは残りやすいのでそれらを先に片付けて少数だけ残して決め打ちし、それら残りを集中的に乱択で処理する。
 
-[kurenai3110](https://www.topcoder.com/members/kurenai3110/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さん [yowa](https://www.topcoder.com/members/yowa/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんが上にいる。まだ初日深夜だが彼らいつもこの時間にこんな順位なんだっけかという気持ち。
-[shamai](https://www.topcoder.com/members/shamal/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さん [ebicochineal](https://www.topcoder.com/members/ebicochineal/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんがさらに上にいる。共にratingが未収束でなんとも言えないね。
+[kurenai3110](https://www.topcoder.com/members/kurenai3110/) さん [yowa](https://www.topcoder.com/members/yowa/) さんが上にいる。まだ初日深夜だが彼らいつもこの時間にこんな順位なんだっけかという気持ち。
+[shamai](https://www.topcoder.com/members/shamal/) さん [ebicochineal](https://www.topcoder.com/members/ebicochineal/) さんがさらに上にいる。共にratingが未収束でなんとも言えないね。
 
 | Handle        | Score       | Rank   | Last Submission Time      | Language    | Example Tests     | Submissions | Current Rating    | Predicted Rating  | Rating Delta |
 |---------------|-------------|--------|---------------------------|-------------|-------------------|-------------|-------------------|-------------------|--------------|
@@ -91,7 +91,7 @@ rejudgeがあった。[ceni1055](https://www.topcoder.com/members/ceni1055/detai
 | kimiyuki      | 923484.85   | 5      | 04.19.2018 14:00:26       | C++         | 11                | 3           | 1745              | 1896.23           | 151.23       |
 | CatalinT      | 893636.36   | 6      | 04.19.2018 04:55:27       | C++         | 3                 | 2           | 2504              | 2480.71           | -23.29       |
 
-![33ec0a8eb9474d17d67cb7ec7851e337ded45d0f](https://user-images.githubusercontent.com/2203128/39096790-5cc4845e-468f-11e8-869e-42d9bd14106b.gif)
+![33ec0a8eb9474d17d67cb7ec7851e337ded45d0f](https://github.com/kmyk/topcoder-marathon-match-100-same-color-pairs/raw/master/image/33ec0a8eb9474d17d67cb7ec7851e337ded45d0f.gif)
 
 次やるべきことは焼き鈍しに思える。
 対の列と見ると焼けないが、対の集合から列の復元が実質的に一意であることを考えると焼ける。
@@ -158,7 +158,7 @@ ensemble `5d9cb5c536e63d2122ac8c96f48db7e10556e2d5` 提出。同状況で 851188
 
 画像は `958cf1fba027bb94691c892443888a77bc1c9a41` のもの。
 
-![958cf1fba027bb94691c892443888a77bc1c9a41](https://user-images.githubusercontent.com/2203128/39096793-5e879c9a-468f-11e8-8d71-124f533c0ada.gif)
+![958cf1fba027bb94691c892443888a77bc1c9a41](https://github.com/kmyk/topcoder-marathon-match-100-same-color-pairs/raw/master/image/958cf1fba027bb94691c892443888a77bc1c9a41.gif)
 
 rating predictorが壊れてたので直した。これ [#2](https://github.com/kmyk/topcoder-marathon-match-rating-predictor/issues/2) ひどくない？
 
@@ -293,7 +293,7 @@ C = 6 では全滅。
 | shilov      | 900826.09 | 4         | 04.20.2018 00:57:03   | Java      | 9               | 4               | 985             | 1190.56               | 205.56       |
 | CatalinT    | 900695.65 | 5         | 04.20.2018 04:06:54   | C++       | 4               | 4               | 2504            | 2511.47               | 7.47         |
 
-![06df28f97a648764adfd1e1aff41f4acaa9a6393](https://user-images.githubusercontent.com/2203128/39096794-60e3d1ca-468f-11e8-8ddc-ae9d8394e05d.gif)
+![06df28f97a648764adfd1e1aff41f4acaa9a6393](https://github.com/kmyk/topcoder-marathon-match-100-same-color-pairs/raw/master/image/06df28f97a648764adfd1e1aff41f4acaa9a6393.gif)
 
 C = 5 の場合もすべて満点が出ている。C = 2,3,4 の場合も満点なので省略している。
 最終的に全完もありえるように思えてきた。
@@ -431,13 +431,13 @@ C = 5 の場合もすべて満点が出ている。C = 2,3,4 の場合も満点�
 | 99   | 1.0    | 0.9981 | 1.0    | 0.9972 | 1.0    | 0.9981 | 1.0    | 1.0    | 0.9972 | 0.9916 |
 
 `271521042ab7e8b8fe5b6b79dff4916ff8c6c1da` の提出結果。 903445.38 -> 910336.13 と改善はしているが順位は変わらず。
-解法の自明さと点数の近さから見て、 [sdya](https://www.topcoder.com/members/sdya/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんも [shamal](https://www.topcoder.com/members/shamal/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんも解法は私とほぼ同じに思える。
+解法の自明さと点数の近さから見て、 [sdya](https://www.topcoder.com/members/sdya/) さんも [shamal](https://www.topcoder.com/members/shamal/) さんも解法は私とほぼ同じに思える。
 
 1位取ったつもりで投げたのに全然だめで冷えた。
 ほぼなかった満点の数が半分くらいになったし「単独1位だろうから順位表を見れば「どうせあいつのことだから思考停止焼き鈍し/ビームサーチでラッキーパンチでしょ」というメタができてしまう気がする提出控えた方がいいかなあ」「でも暫定1位にして気持ちよくなりたい」などと考えていたのはなんだったのか、悲しすぎる。
 
-[kurenai3110](https://www.topcoder.com/members/kurenai3110/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんや [yowa](https://www.topcoder.com/members/yowa/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんがまだ下の方なのはなぜだろう。そろそろ彼らが1,2位あたりに座る頃の印象がある。
-[wleite](https://www.topcoder.com/members/wleite/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんや [hakomo](https://www.topcoder.com/members/hakomo/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんあたりの初動が遅いのはこれはいつもそうだった気がする。
+[kurenai3110](https://www.topcoder.com/members/kurenai3110/) さんや [yowa](https://www.topcoder.com/members/yowa/) さんがまだ下の方なのはなぜだろう。そろそろ彼らが1,2位あたりに座る頃の印象がある。
+[wleite](https://www.topcoder.com/members/wleite/) さんや [hakomo](https://www.topcoder.com/members/hakomo/) さんあたりの初動が遅いのはこれはいつもそうだった気がする。
 
 | Handle     | Score     | Rank      | Last Submission Time     | Language  | Example Tests  | Submissions    | Current Rating | Predicted Rating    | Rating Delta |
 |------------|-----------|-----------|--------------------------|-----------|----------------|----------------|----------------|---------------------|--------------|
@@ -447,7 +447,7 @@ C = 5 の場合もすべて満点が出ている。C = 2,3,4 の場合も満点�
 | JacoCronje | 902647.06 | 4         | 04.20.2018 08:59:33      | C++       | 3              | 3              | 2231           | 2287.71             | 56.71        |
 | CatalinT   | 894327.73 | 5         | 04.20.2018 04:06:54      | C++       | 4              | 4              | 2504           | 2512.00             | 8.00         |
 
-![271521042ab7e8b8fe5b6b79dff4916ff8c6c1da](https://user-images.githubusercontent.com/2203128/39096795-62ec9e20-468f-11e8-904e-ee98bcc4a2bb.gif)
+![271521042ab7e8b8fe5b6b79dff4916ff8c6c1da](https://github.com/kmyk/topcoder-marathon-match-100-same-color-pairs/raw/master/image/271521042ab7e8b8fe5b6b79dff4916ff8c6c1da.gif)
 
 次の手はとりあえず高速化と焼き鈍し変数調整だろうか。しかし日程を見ても解法を見てもそういうのはまだ早い気がする。どうしたものか。
 
@@ -513,7 +513,7 @@ seedごとの点数のばらつきの原因は何だろうか。
 | kimiyuki  | 904370.08      | 2    | 04.20.2018 14:24:04      | C++       | 21             | 7              | 1745                | 2042.50             | 297.50       |
 | shamal    | 902480.31      | 3    | 04.20.2018 09:10:22      | C++       | 7              | 4              | 1627                | 1874.48             | 247.48       |
 
-![4b22cdec745fa64be3fe8dc31c160f9978f4dd5b](https://user-images.githubusercontent.com/2203128/39096798-664dcecc-468f-11e8-8d75-277f5c404817.gif)
+![4b22cdec745fa64be3fe8dc31c160f9978f4dd5b](https://github.com/kmyk/topcoder-marathon-match-100-same-color-pairs/raw/master/image/4b22cdec745fa64be3fe8dc31c160f9978f4dd5b.gif)
 
 ### 4/21
 
@@ -738,7 +738,7 @@ area で整列すると remaining との相関が感じられる。
 そろそろ1度くらい暫定1位ください。
 こんなに運良くクリティカル入り続けるの滅多にないし勢いでどうか頼む。
 もう落ちるしかないし潜伏が怖い。
-特にExample Testsに1提出だけして点数nullで潜んでる [hakomo](https://www.topcoder.com/members/hakomo/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さん不穏すぎる。
+特にExample Testsに1提出だけして点数nullで潜んでる [hakomo](https://www.topcoder.com/members/hakomo/) さん不穏すぎる。
 丁寧に細かい改善を実装する感じだから青や緑が飛んでくる可能性もあるし。
 
 変更点としてはまず区分的に解いた。
@@ -753,7 +753,7 @@ restartはSATと違ってすべて捨てて真に0からだがその代わりに
 | kimiyuki         | 870333.33      | 2         | 04.21.2018 15:33:40      | C++       | 22             | 8              | 1745           | 2054.80             | 309.80       |
 | AlexeyProkopnev  | 865909.09      | 3         | 04.21.2018 13:07:58      | C++       | 18             | 10             | 1520           | 1758.56             | 238.56       |
 
-![38e44646947e13968b4fb7388a747c4f63f5718f](https://user-images.githubusercontent.com/2203128/39096799-68f271b4-468f-11e8-8701-986ee63f2b3f.gif)
+![38e44646947e13968b4fb7388a747c4f63f5718f](https://github.com/kmyk/topcoder-marathon-match-100-same-color-pairs/raw/master/image/38e44646947e13968b4fb7388a747c4f63f5718f.gif)
 
 | seed    | H     | W     | C     | area   | base     | + piecewise | + restart |
 |---------|-------|-------|-------|--------|----------|-------------|-----------|
@@ -1063,7 +1063,7 @@ forumで確認取るべきな気もするがどうしよう。どうであれ実
 | machy     | 851633.66   | 2      | 04.22.2018 00:41:02    | C++       | 1             | 5           | 1624             | 1839.22          | 215.22       |
 | kimiyuki  | 850495.05   | 3      | 04.22.2018 13:19:05    | C++       | 23            | 9           | 1745             | 2022.82          | 277.82       |
 
-![3668ad51342bb205d79f7edccc2828ddcc8c9560](https://user-images.githubusercontent.com/2203128/39097975-c7d353ba-469e-11e8-9cad-3a1c0a5ac8fc.gif)
+![3668ad51342bb205d79f7edccc2828ddcc8c9560](https://github.com/kmyk/topcoder-marathon-match-100-same-color-pairs/raw/master/image/3668ad51342bb205d79f7edccc2828ddcc8c9560.gif)
 
 # 2/23
 
@@ -1082,8 +1082,8 @@ TopCoderに最近登録してMMに初出場の人の中で1位なら全体での
 | wleite      | 842433.63   | 5     | 04.22.2018 23:39:39   | Java      | 12            | 10          | 2708            | 2716.00           | 8.00         |
 
 下がっていた。
-[sdya](https://www.topcoder.com/members/sdya/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんが粘る。提出の雰囲気を見るに私と同様に細かな改善を繰り返していそう。
-[wleite](https://www.topcoder.com/members/wleite/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんはいつも立ち上がり遅いけどなぜなのだろう。焼き鈍しなのかな？
+[sdya](https://www.topcoder.com/members/sdya/) さんが粘る。提出の雰囲気を見るに私と同様に細かな改善を繰り返していそう。
+[wleite](https://www.topcoder.com/members/wleite/) さんはいつも立ち上がり遅いけどなぜなのだろう。焼き鈍しなのかな？
 最終日には7位ぐらいに落ちてて賞金圏外で終了しそうな予感がある。厳しい。
 
 最後に残ってしまったマスが消えるように無理矢理修正する遷移を実装してみた。
@@ -1101,7 +1101,7 @@ TopCoderに最近登録してMMに初出場の人の中で1位なら全体での
 | 771   | 26    | 95    | 6     | 6         | 2470 |
 
 その提出結果。842675.44 -> 844364.04。2位。
-[eldidou](https://www.topcoder.com/members/eldidou/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんは全完してそうですね。
+[eldidou](https://www.topcoder.com/members/eldidou/) さんは全完してそうですね。
 
 | Handle    | Score         | Rank  | Last Submission Time  | Language  | Example Tests | Submissions   | Current Rating    | Predicted Rating  | Rating Delta |
 |-----------|---------------|-------|-----------------------|-----------|---------------|---------------|-------------------|-------------------|--------------|
@@ -1113,7 +1113,7 @@ TopCoderに最近登録してMMに初出場の人の中で1位なら全体での
 
 visualizeの結果も自明になってきた。計算にかかった時間に比例して加速させるとかしないと違いが感じられない。
 
-![6ecfcc670dd1d36e2e73cdd584dc6feb3923b979](https://user-images.githubusercontent.com/2203128/39126042-0122a3c6-473c-11e8-97f5-d0a7fbc5134b.gif)
+![6ecfcc670dd1d36e2e73cdd584dc6feb3923b979](https://github.com/kmyk/topcoder-marathon-match-100-same-color-pairs/raw/master/image/6ecfcc670dd1d36e2e73cdd584dc6feb3923b979.gif)
 
 もう残りは高速化と調整しかなさそうに思える。
 しかしこう思ったところからさらに後1手の改善をするのがかっこいいしなんとかやってやりたい。
@@ -1155,7 +1155,7 @@ visualizeの結果も自明になってきた。計算にかかった時間に�
 | kimiyuki  | 842360.52 | 1     | 04.23.2018 10:53:55   | C++       | 28            | 11            | 1745              | 2063.98           | 318.98        |
 | imazato   | 841437.77 | 3     | 04.23.2018 08:15:19   | C++       | 8             | 8             | 2408              | 2478.95           | 70.95         |
 
-![8d0dd45f2c59b9ded85a37c43a7b646c00f609e5](https://user-images.githubusercontent.com/2203128/39135756-a6057cb6-4754-11e8-9c72-471616d9ac72.gif)
+![8d0dd45f2c59b9ded85a37c43a7b646c00f609e5](https://github.com/kmyk/topcoder-marathon-match-100-same-color-pairs/raw/master/image/8d0dd45f2c59b9ded85a37c43a7b646c00f609e5.gif)
 
 残りはまずはパラメタ調整だろうか。
 
@@ -1297,11 +1297,11 @@ cloud上での実行結果は以下。seed < 10000でC = 6のものをすべて�
 | 6553 | 98 | 97 | 6 | 6         | 8.80829 |
 | 7061 | 94 | 95 | 6 | 6         | 8.808   |
 
-![a40dfcc54f8f2cdd9155d0fc5ceb02315e76d1b2](https://user-images.githubusercontent.com/2203128/39192517-4be84f86-4814-11e8-8d55-791d4c5b5b35.gif)
+![a40dfcc54f8f2cdd9155d0fc5ceb02315e76d1b2](https://github.com/kmyk/topcoder-marathon-match-100-same-color-pairs/raw/master/image/a40dfcc54f8f2cdd9155d0fc5ceb02315e76d1b2.gif)
 
 蛇行が分かりやすい例は次のseed = 3。
 
-![a40dfcc54f8f2cdd9155d0fc5ceb02315e76d1b2 1](https://user-images.githubusercontent.com/2203128/39192521-4eabe0ac-4814-11e8-83b9-be3d79b93b13.gif)
+![a40dfcc54f8f2cdd9155d0fc5ceb02315e76d1b2.1](https://user-images.githubusercontent.com/2203128/39192521-4eabe0ac-4814-11e8-83b9-be3d79b93b13.gif)
 
 pragmaについて。
 `#pragma GCC target "avx"` はillegal instructionした。そういえばそうだった。
@@ -1404,7 +1404,7 @@ throughputは足りてるとしてもlatencyが大きい。
 seed = 4165が最も難しいseedのようだ。次の図のように左下の桃赤桃が厳しい。
 一方でこれをちゃんと解き切ってくれることもあるため、最終テストにこういうのが少数だけ混入すると運ゲーになりそう。
 
-![4165](https://user-images.githubusercontent.com/2203128/39253893-e71a68ac-48e3-11e8-9688-170fa9a0daee.gif)
+![4165](https://github.com/kmyk/topcoder-marathon-match-100-same-color-pairs/raw/master/image/4165.gif)
 
 もう待つぐらいしかやることがないので諸々を眺めている。
 全完者が増えてる。
@@ -1423,7 +1423,7 @@ seed = 4165が最も難しいseedのようだ。次の図のように左下の�
 | xyz600       | 821011.03 | 10   | 04.25.2018 08:53:06      | C++       | 30             | 9              | 1505           | 1670.13             | 165.13         |
 
 `b737b223ab76f14c06e177cf34dc314e0b84aad3` 提出。最終提出のつもり。
-私より後から全完した人はどうなのか分からないが、 [eldidou](https://www.topcoder.com/members/eldidou/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH) さんが全完確定以後まだ再提出してないのなぜだろう。初手でもう十分な精度が出てたのだろうか。そんな気がする。そうだとすると現状では負け雰囲気濃厚。ここまで来て2位3位はつらい。
+私より後から全完した人はどうなのか分からないが、 [eldidou](https://www.topcoder.com/members/eldidou/) さんが全完確定以後まだ再提出してないのなぜだろう。初手でもう十分な精度が出てたのだろうか。そんな気がする。そうだとすると現状では負け雰囲気濃厚。ここまで来て2位3位はつらい。
 
 下の表が私の提出直後であることを踏まえれば分かるが同点の場合の表示順序はhandleの順だったらしい。最初全完したときは最終提出時間でも矛盾しなかったためそうだと思い込んでしまっていた。
 普通に比較したらcase-sensitiveになるだろうしhandleの先頭はせめて大文字にしておくべきだったのだろうか。
