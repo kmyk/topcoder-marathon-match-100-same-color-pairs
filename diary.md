@@ -1451,7 +1451,9 @@ seed = 4165 については未だあまり成功しない。実質敗北みた�
 
 最終日なのにqueueが疎だ。前回が大惨事だったのと対照的。
 
-## 振り返り
+### 振り返り
+
+終了を待っている間に書いた。
 
 -   なぜ上手くいったのかは不明。たぶん運が良かった。まあ運も実力のうちだし勝ちは勝ち。
     どういう方針かと考えても「細かく切って焼いただけ」と言うしかない。焼き鈍しは典型だし区間に分けてそれぞれ解くのも典型だろうので典型しかしてない。
@@ -1485,3 +1487,48 @@ seed = 4165 については未だあまり成功しない。実質敗北みた�
     しかしこれってつまりWeb UIまで含んだフル機能のオンラインジャッジサーバ書きましょうということなんだよね。CTF開催するとかにも使えるしあって損はないが面倒。
     Hamako Online JudgeかKotamanegi Online JudgeあたりがOSSだったらforkしたのだけどclosed sourceだし自分で実装しないとだめそう。
     時間消費はMM参加1回分くらいの時間があれば完成するだろうからいいとして、途中で飽きるのが見えてるので難しい。
+
+### 感想戦
+
+-   [iwashi31](https://www.topcoder.com/members/iwashi31/) さんの[list](https://twitter.com/iwashi31/lists/mm100) が感想戦に便利
+-   [hakomo](https://www.topcoder.com/members/hakomo) さん
+    -   <https://twitter.com/hakomof/status/989310645077131265>
+    -   小さく切って焼いたぽい 私より細かく切ってる
+    -   <https://twitter.com/hakomof/status/989316123056209920>
+    -   細かく切ってからなら依存グラフもありになるのか 完全に見落としてた 棄却した方針もちゃんと記録しておくべきぽい
+-   [xyz](https://www.topcoder.com/members/xyz600) さん
+    -   <https://twitter.com/xyz600600/status/989309772921847808>
+    -   「消しにくそうな点から順に反復深化法(最大深さ5)でgreedyに消しにいく」
+    -   なるほど分からん
+-   [koyumeishi](https://www.topcoder.com/members/koyumeishi) さん
+    -   <https://twitter.com/koyumeishi_/status/989315572935442432>
+    -   <https://twitter.com/koyumeishi_/status/989317342789173248>
+    -   「列Cより左で、まだ消してない行Rの要素、みたいなのをH本 stack っぽく持っておくと矩形領域見なくて済むアルゴテク的なのを使ってた」
+    -   よく分からない 探索順序に依存してないとできないとかなら分かる それとも単に疎行列みたいにするのかな
+-   [ki-ki](https://www.topcoder.com/members/ki-ki) さん
+    -   <https://twitter.com/ki_ki33/status/989315418513813504>
+    -   「手順をスワップして焼きなまし」「温度下げる意味あんまりなかったから温度一定」
+    -   操作間の依存関係が強い場合はこれになってた？
+-   [my316g](https://www.topcoder.com/members/my316g) さん
+    -   <https://twitter.com/my316g/status/989319530059976704>
+-   [masakt](https://www.topcoder.com/members/masakt)
+    -   <https://twitter.com/masamasakt1023/status/989326437051056129>
+    -   <https://twitter.com/masamasakt1023/status/989330101144768512>
+    -   「同じ色が隣り合っているタイルで消しやすいものから消すと解が悪くなる」
+    -   それはそうだけどちゃんと意識してなかった
+-   [Masa-Y](https://www.topcoder.com/members/Masa-Y) さん
+    -   <https://twitter.com/hogeover30/status/989308288377356288>
+    -   <https://twitter.com/hogeover30/status/989317574138650624>
+    -   `__int128` 完全に忘れてた つらい
+-   「SATっぽい」って言ってる人は他に誰もおらず反応も薄くて悲しい。
+    -   ふぁぼくれたのも [koyumeishi](https://www.topcoder.com/members/koyumeishi) さんだけ。
+        通じるとすれば彼ぐらいというのはそんな気もする。
+        私が得意な問題なら彼も得意だと思うし最初から参加しててほしかった
+-   ビームサーチに吸われる人が多かったぽい。判断は保留にしてまずは貪欲すればどちらにも派生できるしどちらが適切かも分かりやすくなるのではと気付いた
+    -   例: <https://twitter.com/nekomimimi/status/989328793067184128>
+    -   気持ちは分かる
+-   自分が上位取った上で感想戦みたいなのをしてみると「実はそこはそれほど影響しないです」「前提が共有されてないから説明が面倒だし言ってないあっちの方が重要なのです」がある。
+    解法の図とかを見て分かった気になって終わるのでなく、ちゃんと手を動かして復習するのが大事っぽい。
+    負けたときほどちゃんとやるべきなのについ逆にになってしまう。向上心が足りない。
+    あと解法以外の情報も出てこない。性能評価は計算時間かかるけどどうやってしてたとかそういうの。
+-   「ほめて」って言ったtweetが46ふぁぼに達してた。 <https://twitter.com/a3VtYQo/status/988432804034756608> ほめてくれたみんな ありがとう
