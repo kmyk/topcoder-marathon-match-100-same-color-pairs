@@ -529,6 +529,7 @@ SATは変数の決定の順序が重要で頻繁にrestartをするが、現在�
 面積と点数の相関も未だ残っているように見える (要確認)。なぜすべて解消されないのか。
 雑な前処理だと面倒臭いマスが残るからだろうか。
 ここから考えるに、盤面を分割して区分的にやるのが選択肢になりそう。
+盤面が大きいと悪いなら小さくすればよく、ちゃんと全部消し切るのなら面倒なマスも残らないはず。
 
 ### 4/21 24:00 ~
 
@@ -1128,6 +1129,7 @@ visualizeの結果も自明になってきた。計算にかかった時間に�
 `681ae9bd3db7a7ab1dbc77ba42b1076490bece42`。
 残マス数 k に対し O(k^2HW) で行なっていた削除可能対の探索を O(kHW) でやるようにした。
 高速化のため。
+次のマスの位置を持っておくsingle-linked listを組んでunion find treeのように経路圧縮。
 正確には色とか圧縮とかでずれてくるのであまり速くならないはずだが、探索順序の変更の影響かseed < 1000を全完できた。
 偶然の可能性はあるが。
 
@@ -1220,7 +1222,7 @@ clarに返事が帰ってきた。「seedはランダムに選ばれる」「rat
 | 6  | 6  | 6  | 2 |
 | 6  | 5  | 4  | 3 |
 
-計算資源借りた。AWS EC2 c5.2xlarge spot instance us-east-1f 時価$0.13/hour。
+計算資源借りた。AWS EC2 c5.2xlarge spot instance us-east-1f 時価$0.13/hour。終了まで回しても1000円越えない。
 3.00GHzでavx512まで使えて物理コアが4個見える。
 spot instance とても安くてすごい。入札期限の設定を流用してMM期間終了と同時にinstance落ちる設定にもできるし便利すぎる。
 でもTopCoderの鯖上では2.80GHzだしたぶんavx512はだめなので合わせておくべきだった気がする。
@@ -1491,20 +1493,36 @@ seed = 4165 については未だあまり成功しない。実質敗北みた�
 ### 感想戦
 
 -   [iwashi31](https://www.topcoder.com/members/iwashi31/) さんの[list](https://twitter.com/iwashi31/lists/mm100) が感想戦に便利
+-   [eldidou](https://www.topcoder.com/members/eldidou) さん
+    -   <https://apps.topcoder.com/forums/?module=Thread&threadID=916946&start=0&mc=15#2263041>
+    -   "For the prefix I don't use only the best solution seen so far, but a pool of the N best solutions."
+    -   焼き鈍し
 -   [hakomo](https://www.topcoder.com/members/hakomo) さん
     -   <https://twitter.com/hakomof/status/989310645077131265>
     -   小さく切って焼いたぽい 私より細かく切ってる
     -   <https://twitter.com/hakomof/status/989316123056209920>
     -   細かく切ってからなら依存グラフもありになるのか 完全に見落としてた 棄却した方針もちゃんと記録しておくべきぽい
--   [xyz](https://www.topcoder.com/members/xyz600) さん
+    -   [Topcoder Marathon Match 100 SameColorPairs - びったんびったん](http://hakomof.hatenablog.com/entry/2018/04/26/210717)
+    -   「同じ色のペアを2つ選んでつなぎかえます。マスAとBを消すペアとマスCとDを消すペアを、ACを消すペアとBDを消すペアに変えるといった感じです。」これあまり考えなかったけど「近傍も小さいので」と言われるとそれはそう
+    -   「... 依存グラフを、閉路の手前までトポロジカルソートすると ...」
+    -   「... [バイナリ空間分割](https://ja.wikipedia.org/wiki/%E3%83%90%E3%82%A4%E3%83%8A%E3%83%AA%E7%A9%BA%E9%96%93%E5%88%86%E5%89%B2)という衝突している物体の列挙を高速にするアルゴリズムを使います。」分かるけど大がかり過ぎて定数倍遅そう。これどれくらい効くのだろうか。差分更新するには必要なのかな
+-   [xyz600](https://www.topcoder.com/members/xyz600) さん
     -   <https://twitter.com/xyz600600/status/989309772921847808>
     -   「消しにくそうな点から順に反復深化法(最大深さ5)でgreedyに消しにいく」
     -   なるほど分からん
+-   [tomerun](https://www.topcoder.com/members/tomerun) さん
+    -   <https://twitter.com/tomerun/status/989319045303255041>
+    -   上手くビーム撃てばprovisional 13位なのか ビームサーチのプロ
+    -   <https://twitter.com/tomerun/status/989518036158709761>
+    -   自前visualizer書いてる
 -   [koyumeishi](https://www.topcoder.com/members/koyumeishi) さん
     -   <https://twitter.com/koyumeishi_/status/989315572935442432>
     -   <https://twitter.com/koyumeishi_/status/989317342789173248>
     -   「列Cより左で、まだ消してない行Rの要素、みたいなのをH本 stack っぽく持っておくと矩形領域見なくて済むアルゴテク的なのを使ってた」
     -   よく分からない 探索順序に依存してないとできないとかなら分かる それとも単に疎行列みたいにするのかな
+-   [EvbCFfp1XB](https://www.topcoder.com/members/EvbCFfp1XB) さん
+    -   [Marathon Match 100: Same Color Pairs : EvbCFfp1XB](http://spvyxgfbtewiazrl.doorblog.jp/archives/51895858.html)
+    -   焼き鈍し
 -   [ki-ki](https://www.topcoder.com/members/ki-ki) さん
     -   <https://twitter.com/ki_ki33/status/989315418513813504>
     -   「手順をスワップして焼きなまし」「温度下げる意味あんまりなかったから温度一定」
@@ -1520,6 +1538,11 @@ seed = 4165 については未だあまり成功しない。実質敗北みた�
     -   <https://twitter.com/hogeover30/status/989308288377356288>
     -   <https://twitter.com/hogeover30/status/989317574138650624>
     -   `__int128` 完全に忘れてた つらい
+-   [dimkadimon](https://www.topcoder.com/members/dimkadimon) さん
+    -   <https://apps.topcoder.com/forums/?module=Thread&threadID=916946&start=0&mc=15#2263168>
+    -   対の有効性を2次元累積和で判定
+    -   英Wikipediaに記事 [Summed-area table - Wikipedia](https://en.wikipedia.org/wiki/Summed-area_table) あるのか 英語圏ずるい
+    -   single-linked listの縮約をまとめてやっており元より実質 O(HW) なのでこれでもよかったかも 考えてなかった
 -   「SATっぽい」って言ってる人は他に誰もおらず反応も薄くて悲しい。
     -   ふぁぼくれたのも [koyumeishi](https://www.topcoder.com/members/koyumeishi) さんだけ。
         通じるとすれば彼ぐらいというのはそんな気もする。
@@ -1532,3 +1555,15 @@ seed = 4165 については未だあまり成功しない。実質敗北みた�
     負けたときほどちゃんとやるべきなのについ逆にになってしまう。向上心が足りない。
     あと解法以外の情報も出てこない。性能評価は計算時間かかるけどどうやってしてたとかそういうの。
 -   「ほめて」って言ったtweetが46ふぁぼに達してた。 <https://twitter.com/a3VtYQo/status/988432804034756608> ほめてくれたみんな ありがとう
+
+### 4/27
+
+この日記が見付かったのはいいとしてURLがtwitter界に漏れてた。
+面白いと思えるなら読めばよいと思うが、これはあくまで日記なことには注意してほしい。
+つまりは基本的に自分のために書いてるという点です。
+しかし読み返して「これはさすがに自分にとってもギャップが大きい」と思ったあたりは追記した。
+あとtweetするならついでにstarを付けてみませんか？ まあこのrepoにstarが集まってもあまり嬉しさはないのですが。
+
+[forum](https://apps.topcoder.com/forums/?module=ThreadList&forumID=625343&mc=72) の [Post your approach](https://apps.topcoder.com/forums/?module=Thread&threadID=916946&start=0) にも書いておいた。
+普段はもっと順位が低いため面倒が勝つが、provisional全完なので下手糞英語でも頑張って読んでくれるはずだし書いた。
+書いてる途中に [hakomo](https://www.topcoder.com/members/hakomo/) さんのが投稿された。名前に色を付けるのどうするのかなと思ったが `[handle]hakomo[/handle]` みたいにするっぽい。気付かず「自動でやってくれるのだろう」「 `<a href="...">foo</a>` とlink貼った場合のみ解釈されるのかな」で2 editsが発生した。
