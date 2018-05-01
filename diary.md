@@ -1547,14 +1547,17 @@ seed = 4165 については未だあまり成功しない。実質敗北みた�
     -   ふぁぼくれたのも [koyumeishi](https://www.topcoder.com/members/koyumeishi) さんだけ。
         通じるとすれば彼ぐらいというのはそんな気もする。
         私が得意な問題なら彼も得意だと思うし最初から参加しててほしかった
--   ビームサーチに吸われる人が多かったぽい。判断は保留にしてまずは貪欲すればどちらにも派生できるしどちらが適切かも分かりやすくなるのではと気付いた
-    -   例: <https://twitter.com/nekomimimi/status/989328793067184128>
-    -   気持ちは分かる
+-   ビームサーチに吸われる人が多かったぽい
+    -   判断は保留にしてまずは貪欲すればどちらにも派生できるしどちらが適切かも分かりやすくなるのではと気付いた
+    -   例: <https://twitter.com/nekomimimi/status/989328793067184128> 気持ちは分かる
+    -   直感として「操作列の合流性が高いので多様性が無になりそう」というのがあり初手で捨てた
+    -   捨てた根拠ぐらい日記に書いておくべきなのでは。 私なんかの直感はあてにならないため。例: TopCoder Marathon Match: 94. ConnectedComponent
 -   自分が上位取った上で感想戦みたいなのをしてみると「実はそこはそれほど影響しないです」「前提が共有されてないから説明が面倒だし言ってないあっちの方が重要なのです」がある。
     解法の図とかを見て分かった気になって終わるのでなく、ちゃんと手を動かして復習するのが大事っぽい。
     負けたときほどちゃんとやるべきなのについ逆にになってしまう。向上心が足りない。
     あと解法以外の情報も出てこない。性能評価は計算時間かかるけどどうやってしてたとかそういうの。
 -   「ほめて」って言ったtweetが46ふぁぼに達してた。 <https://twitter.com/a3VtYQo/status/988432804034756608> ほめてくれたみんな ありがとう
+-   [CatalinT](https://www.topcoder.com/members/CatalinT/) さんの blog post <https://www.topcoder.com/blog/an-mvps-thoughts-on-marathon-match-100/>
 
 ### 4/27
 
@@ -1567,3 +1570,15 @@ seed = 4165 については未だあまり成功しない。実質敗北みた�
 [forum](https://apps.topcoder.com/forums/?module=ThreadList&forumID=625343&mc=72) の [Post your approach](https://apps.topcoder.com/forums/?module=Thread&threadID=916946&start=0) にも書いておいた。
 普段はもっと順位が低いため面倒が勝つが、provisional全完なので下手糞英語でも頑張って読んでくれるはずだし書いた。
 書いてる途中に [hakomo](https://www.topcoder.com/members/hakomo/) さんのが投稿された。名前に色を付けるのどうするのかなと思ったが `[handle]hakomo[/handle]` みたいにするっぽい。気付かず「自動でやってくれるのだろう」「 `<a href="...">foo</a>` とlink貼った場合のみ解釈されるのかな」で2 editsが発生した。
+
+考えてなかったけど「Travis CIは学生ならprivate repoでも使える」 <https://twitter.com/KageShiron/status/989859484657795073> らしいと聞いてCIもありな気がしてきた。
+
+### 5/1
+
+結果発表された。単独1位。嬉しい。1ケースを除いて全完したらしい。ガチャに勝った。告知通りなら賞金を得たはず。
+「TopCoderで [tourist](https://www.topcoder.com/members/tourist/) を倒して優勝し賞金を得た」が真になった。
+こういうものの勝利報告はちゃんとtwitterやfacebookに書くようにした方が有利に働くのは知っているが、嬉しいのでとりあえず今日は黙ってひとりで幸せな気分のまま布団に入りたい。
+
+遅くとも 5月1日(火) 10:04:00 EDT には結果発表があったようだ。もしかして終了からちょうど5日後に結果発表だったりするのだろうか。
+SimpleStats <https://community.topcoder.com/tc?module=SimpleStats&c=long_comp_history&d1=statistics&d2=longHistory&cr=40099108> の更新が最速で、順位表は ViewStanding や ViewOverview でなくて ViewSystemTestResults <https://community.topcoder.com/longcontest/stats/?module=ViewSystemTestResults&pm=14889&rd=17143&cr=40099108> が先に更新される。 members <https://www.topcoder.com/members/kimiyuki/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH://www.topcoder.com/members/kimiyuki/> への反映は遅い。
+諸々のAPIを直接叩いても情報は得られるようだが具体的なendpointは知らず。
