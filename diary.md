@@ -1582,3 +1582,11 @@ seed = 4165 については未だあまり成功しない。実質敗北みた�
 遅くとも 5月1日(火) 10:04:00 EDT には結果発表があったようだ。もしかして終了からちょうど5日後に結果発表だったりするのだろうか。
 SimpleStats <https://community.topcoder.com/tc?module=SimpleStats&c=long_comp_history&d1=statistics&d2=longHistory&cr=40099108> の更新が最速で、順位表は ViewStanding や ViewOverview でなくて ViewSystemTestResults <https://community.topcoder.com/longcontest/stats/?module=ViewSystemTestResults&pm=14889&rd=17143&cr=40099108> が先に更新される。 members <https://www.topcoder.com/members/kimiyuki/details/?track=DATA_SCIENCE&subTrack=MARATHON_MATCH://www.topcoder.com/members/kimiyuki/> への反映は遅い。
 諸々のAPIを直接叩いても情報は得られるようだが具体的なendpointは知らず。
+
+### 5/2
+
+<https://twitter.com/koyumeishi_/status/991388826537934848>。 やはり難しいケースにおいては負けていたらしい。 それでも全体では勝てたのは幸運。 実際のところなぜ勝てたのでしょうか。
+そうなるとやはりちゃんと復習しておくべき。 勝てた問題と負けた問題の両方が復習まだでしかも現在別の問題が走ってるとした場合どれをやるべきなのか。
+その難しかったケースは誰も厳密解出せてなかったらしい。 [hakomo](https://www.topcoder.com/members/hakomo/) さんの提出を長めに実行したら全完が出たため。 0.9500点を出していた人の提出はすべて試したが他はどれもだめだった。 依存グラフを作る方針はこの意味で大正解だったのだと思われる。 しかしだとしたらなぜ彼が1位でないのか。
+
+優勝報告tweetをした。
